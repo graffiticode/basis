@@ -1,0 +1,19 @@
+{
+  "name": "@graffiticode/basis",
+  "version": "1.0.0",
+  "description": "The basis library for creating Graffiticode languages",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graffiticode/basis.git"
+  },
+  "author": "https://github.com/@jeffdyer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/graffiticode/basis/issues"
+  },
+  "homepage": "https://github.com/graffiticode/basis#readme"
+}
