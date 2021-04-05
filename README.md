@@ -1,2 +1,2 @@
 # basis
-Basis language for graffiticode languages
+Basis library for writing graffiticode languages
