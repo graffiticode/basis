@@ -249,45 +249,6 @@ export class BasisTransformer extends Visitor {
 
 
 const transform = (function() {
-  const table = {
-    // v1
-    "PROG" : program,
-    "EXPRS" : exprs,
-    "STR": str,
-    "NUM": num,
-    "IDENT": ident,
-    "BOOL": bool,
-    "LIST": list,
-    "RECORD": record,
-    "BINDING": binding,
-    "ADD" : add,
-    "MUL" : mul,
-    "POW" : pow,
-    "VAL" : val,
-    "KEY" : key,
-    "LEN" : len,
-    "STYLE" : style,
-    "CONCAT" : concat,
-    "ARG" : arg,
-    "IN" : inData,
-    "LAMBDA" : lambda,
-    "PAREN" : paren,
-    "APPLY" : apply,
-    "MAP" : map,
-  };
-  let nodePool;
-  let version;
-  function node(nid) {
-    return nodePool[nid];
-  }
-  function getVersion(pool) {
-    return pool.version ? +pool.version : 0;
-  }
-  function transform(code, data, resume) {
-    nodePool = code;
-    version = getVersion(code);
-    return visit(code.root, data, resume);
-  }
   function error(str, nid) {
     return {
       str: str,
