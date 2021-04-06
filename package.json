@@ -1,5 +1,6 @@
 {
   "name": "@graffiticode/basis",
+  "type": "module",
   "version": "1.0.0",
   "description": "The basis library for creating Graffiticode languages",
   "main": "index.js",
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/graffiticode/basis/issues"
   },
-  "homepage": "https://github.com/graffiticode/basis#readme"
+  "homepage": "https://github.com/graffiticode/basis#readme",
+  "devDependencies": {
+    "hashids": "^2.2.8"
+  }
 }
