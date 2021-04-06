@@ -595,5 +595,4 @@ const transform = (function() {
       });
     });
   }
-  return transform;
 })();
