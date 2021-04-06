@@ -87,18 +87,113 @@ export class Checker extends Visitor {
   }
   ADD(node, options, resume) {
     this.visit(node.elts[0], options, function (err1, val1) {
-      val1 = +val1;
-      if (isNaN(val1)) {
-        err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
-      }
       this.visit(node.elts[1], options, function (err2, val2) {
-        val2 = +val2;
-        if (isNaN(val2)) {
+        if (isNaN(+val1)) {
+          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        }
+        if (isNaN(+val2)) {
           err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
         }
-        resume([].concat(err1).concat(err2), val1 + val2);
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
       });
     });
+  }
+  BOOL(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  RECORD(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  BINDING(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  MUL(node, options, resume) {
+    this.visit(node.elts[0], options, function (err1, val1) {
+      this.visit(node.elts[1], options, function (err2, val2) {
+        if (isNaN(+val1)) {
+          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        }
+        if (isNaN(+val2)) {
+          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+        }
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  POW(node, options, resume) {
+    this.visit(node.elts[0], options, function (err1, val1) {
+      this.visit(node.elts[1], options, function (err2, val2) {
+        if (isNaN(+val1)) {
+          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        }
+        if (isNaN(+val2)) {
+          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+        }
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  VAL(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  KEY(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  LEN(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  ARG(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  IN(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  DATA(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  PAREN(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  APPLY(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  MAP(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  STYLE(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
   }
 }
 
