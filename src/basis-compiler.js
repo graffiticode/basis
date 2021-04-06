@@ -25,7 +25,7 @@ class Visitor {
   }
 }
 
-export class BasisChecker extends Visitor {
+export class Checker extends Visitor {
   constructor(nodePool) {
     super(nodePool);
   }
@@ -142,7 +142,7 @@ function topEnv(ctx) {
   return ctx.env[ctx.env.length-1]
 }
 
-export class BasisTransformer extends Visitor {
+export class Transformer extends Visitor {
   constructor(nodePool) {
     super(nodePool);
   }
@@ -247,7 +247,7 @@ export class BasisTransformer extends Visitor {
   }
 }
 
-export class BasisRenderer {
+export class Renderer {
   constructor(data) {
     this.data = data;
   }
@@ -256,5 +256,49 @@ export class BasisRenderer {
     const err = [];
     const val = this.data;
     resume(err, val);
+  }
+}
+
+export class Compiler {
+  constructor(config) {
+    this.langID = config.langID;
+    this.version = config.version;
+    this.Checker = config.Checker || Checker;
+    this.Transformer = config.Transformer || Transformer;
+    this.Renderer = config.Renderer || Renderer;
+  }
+  compile(code, data, config, resume) {
+    // Compiler takes an AST in the form of a node pool (code) and transforms it
+    // into an object to be rendered on the client by the viewer for this
+    // language.
+    try {
+      let options = {
+        data: data,
+        config: config,
+        result: '',
+      };
+      const checker = new this.Checker(code);
+      checker.check(options, (err, val) => {
+        const transformer = new this.Transformer(code);
+        transformer.transform(options, (err, val) => {
+          if (err && err.length) {
+            resume(err, val);
+          } else {
+            const renderer = new this.Renderer(val);
+            renderer.render(options, (err, val) => {
+              val = !(val instanceof Array) && [val] || val;
+              resume(err, val);
+            });
+          }
+        });
+      });
+    } catch (x) {
+      console.log("ERROR with code");
+      console.log(x.stack);
+      resume([{
+        statusCode: 500,
+        error: "Compiler error"
+      }]);
+    }
   }
 }
