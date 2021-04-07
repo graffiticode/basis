@@ -6,6 +6,8 @@ messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
 
+const ASYNC = false;
+
 class Visitor {
   constructor(nodePool) {
     this.nodePool = nodePool;
@@ -21,7 +23,11 @@ class Visitor {
     assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
     assert(this[node.tag], "2000: Visitor function not defined for: " + node.tag);
     assert(typeof resume === "function", message(1003));
-    this[node.tag](node, options, resume);
+    if (ASYNC) {
+      setTimeout(() => this[node.tag](node, options, resume), 0);
+    } else {
+      this[node.tag](node, options, resume);
+    }
   }
 }
 
@@ -43,11 +49,17 @@ export class Checker extends Visitor {
     });
   }
   EXPRS(node, options, resume) {
-    this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
-      const val = node;
-      resume(err, val);
-    });
+    let err = [];
+    let val = [];
+    for (let elt of node.elts) {
+      this.visit(elt, options, (e0, v0) => {
+        err = err.concat(e0);
+        val = val.concat(v0);
+        if (val.length === node.elts.length) {
+          resume(err, val);
+        }
+      });
+    }
   }
   NUM(node, options, resume) {
     const err = [];
@@ -252,6 +264,7 @@ export class Transformer extends Visitor {
       options = {};
     }
     this.visit(node.elts[0], options, (e0, v0) => {
+      console.log("PROG() v0=" + JSON.stringify(v0));
       const err = e0;
       const val = v0.pop();  // Return the value of the last expression.
       resume(err, val);
@@ -264,9 +277,11 @@ export class Transformer extends Visitor {
       this.visit(elt, options, (e0, v0) => {
         err = err.concat(e0);
         val = val.concat(v0);
+        if (val.length === node.elts.length) {
+          resume(err, val);
+        }
       });
     }
-    resume(err, val);
   }
   NUM(node, options, resume) {
     const err = [];
@@ -278,25 +293,26 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (err0, params) => {
       let args = [].concat(options.args);
       enterEnv(options, "lambda", params.length);
-      params.forEach(function (param, i) {
-        let inits = this.nodePool[node.elts[3]].elts;
+      console.log("LAMBDA() params=" + JSON.stringify(params));
+      params.forEach((param, i) => {
+        // let inits = this.nodePool[node.elts[3]].elts;
         if (args[i]) {
           // Got an arg so use it.
           addWord(options, param, {
             name: param,
             val: args[i],
           });
-        } else {
-          // Don't got an arg so use the init.
-          visit(inits[i], options, (err, val) => {
-            addWord(options, param, {
-              name: param,
-              val: val,
-            });
-          });
+        // } else {
+        //   // Don't got an arg so use the init.
+        //   this.visit(inits[i], options, (err, val) => {
+        //     addWord(options, param, {
+        //       name: param,
+        //       val: val,
+        //     });
+        //   });
         }
       });
-      visit(node.elts[1], options, function (err, val) {
+      this.visit(node.elts[1], options, function (err, val) {
         exitEnv(options);
         resume([].concat(err0).concat(err).concat(err), val)
       });
@@ -309,9 +325,11 @@ export class Transformer extends Visitor {
       this.visit(elt, options, (e0, v0) => {
         err = err.concat(e0);
         val = val.concat(v0);
+        if (val.length === node.elts.length) {
+          resume(err, val);
+        }
       });
     }
-    resume(err, val);
   }
   IDENT(node, options, resume) {
     let word = findWord(options, node.elts[0]);
@@ -339,6 +357,110 @@ export class Transformer extends Visitor {
         resume(err, val);
       });
     });
+  }
+  BOOL(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  RECORD(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  BINDING(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  MUL(node, options, resume) {
+    this.visit(node.elts[0], options, function (err1, val1) {
+      this.visit(node.elts[1], options, function (err2, val2) {
+        if (isNaN(+val1)) {
+          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        }
+        if (isNaN(+val2)) {
+          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+        }
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  POW(node, options, resume) {
+    this.visit(node.elts[0], options, function (err1, val1) {
+      this.visit(node.elts[1], options, function (err2, val2) {
+        if (isNaN(+val1)) {
+          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        }
+        if (isNaN(+val2)) {
+          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+        }
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  VAL(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  KEY(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  LEN(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  ARG(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  IN(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  DATA(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  PAREN(node, options, resume) {
+    this.visit(node.elts[0], options, function (e0, v0) {
+      const err = [].concat(e0);
+      const val = v0;
+      resume(err, val);
+    });
+  }
+  APPLY(node, options, resume) {
+    // Apply a function to arguments.
+    this.visit(node.elts[1], options, (e1, v1) => {
+      options.args = v1;
+      this.visit(node.elts[0], options, (e0, v0) => {
+        //exitEnv(options);
+        const err = [].concat(e1).concat(e0);
+        const val = v0;
+        resume(err, val);
+      });
+    });
+  }
+  MAP(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  STYLE(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
   }
 }
 
@@ -376,6 +498,8 @@ export class Compiler {
       checker.check(options, (err, val) => {
         const transformer = new this.Transformer(code);
         transformer.transform(options, (err, val) => {
+          console.log("compile() err=" + JSON.stringify(err));
+          console.log("compile() val=" + JSON.stringify(val));
           if (err && err.length) {
             resume(err, val);
           } else {
