@@ -354,7 +354,6 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
       const val = ([].concat(v0)).join('');
-      console.log("CONCAT() val=" + JSON.stringify(val));
       resume(err, val);
     });
   }
