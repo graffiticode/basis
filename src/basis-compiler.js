@@ -207,6 +207,16 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
+  CASE(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  OF(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -343,7 +353,8 @@ export class Transformer extends Visitor {
   CONCAT(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
-      const val = [].concat(v0).join();
+      const val = ([].concat(v0)).join('');
+      console.log("CONCAT() val=" + JSON.stringify(val));
       resume(err, val);
     });
   }
@@ -361,15 +372,29 @@ export class Transformer extends Visitor {
     const val = node;
     resume(err, val);
   }
-  RECORD(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
-  }
   BINDING(node, options, resume) {
     const err = [];
     const val = node;
-    resume(err, val);
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        resume([].concat(err1).concat(err2), {key: val1, val: val2});
+      });
+    });
+  }
+  RECORD(node, options, resume) {
+    let err = [];
+    let val = {};
+    let len = 0;
+    for (let elt of node.elts.reverse()) {
+      // Not sure why, but the bindings are reversed in the AST.
+      this.visit(elt, options, (e0, v0) => {
+        err = err.concat(e0);
+        val[v0.key] = v0.val;
+        if (++len === node.elts.length) {
+          resume(err, val);
+        }
+      });
+    }
   }
   MUL(node, options, resume) {
     this.visit(node.elts[0], options, function (err1, val1) {
@@ -430,6 +455,20 @@ export class Transformer extends Visitor {
     const err = [];
     const val = node;
     resume(err, val);
+    // If there is input data, then use it, otherwise use default data.
+    if (node.elts.length === 0) {
+      // No args, so use the given data or empty.
+      let data = options.data ? options.data : [];
+      resume([], data);
+    } else {
+      visit(node.elts[0], options, function (err1, val1) {
+        if (false) {
+          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        }
+        let data = options.data && Object.keys(options.data).length != 0 ? options.data : val1;
+        resume([].concat(err1), data);
+      });
+    }
   }
   PAREN(node, options, resume) {
     this.visit(node.elts[0], options, function (e0, v0) {
@@ -470,6 +509,33 @@ export class Transformer extends Visitor {
     const err = [];
     const val = node;
     resume(err, val);
+  }
+  CASE(node, options, resume) {
+    this.visit(node.elts[0], options, (err, expr) => {
+      let foundMatch = false;
+      for (var i = 1; i < node.elts.length; i++) {
+        this.visit(node.elts[i], options, (err, val) => {
+          console.log("CASE() pattern=" + JSON.stringify(val.pattern));
+          console.log("CASE() expr=" + JSON.stringify(expr));
+          if (expr === val.pattern) {
+            this.visit(val.exprElt, options, resume);
+            foundMatch = true;
+          }
+        });
+        if (foundMatch) {
+          return;
+        }
+      }
+      resume([].concat("Match not found"), null);
+    });
+  }
+  OF(node, options, resume) {
+    this.visit(node.elts[0], options, function (err0, pattern) {
+      resume([].concat(err0), {
+        pattern: pattern,
+        exprElt: node.elts[1],
+      });
+    });
   }
 }
 
