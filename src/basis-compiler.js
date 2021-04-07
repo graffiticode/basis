@@ -264,7 +264,6 @@ export class Transformer extends Visitor {
       options = {};
     }
     this.visit(node.elts[0], options, (e0, v0) => {
-      console.log("PROG() v0=" + JSON.stringify(v0));
       const err = e0;
       const val = v0.pop();  // Return the value of the last expression.
       resume(err, val);
@@ -276,7 +275,7 @@ export class Transformer extends Visitor {
     for (let elt of node.elts) {
       this.visit(elt, options, (e0, v0) => {
         err = err.concat(e0);
-        val = val.concat(v0);
+        val.push(v0);
         if (val.length === node.elts.length) {
           resume(err, val);
         }
@@ -293,7 +292,6 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (err0, params) => {
       let args = [].concat(options.args);
       enterEnv(options, "lambda", params.length);
-      console.log("LAMBDA() params=" + JSON.stringify(params));
       params.forEach((param, i) => {
         // let inits = this.nodePool[node.elts[3]].elts;
         if (args[i]) {
@@ -324,7 +322,7 @@ export class Transformer extends Visitor {
     for (let elt of node.elts) {
       this.visit(elt, options, (e0, v0) => {
         err = err.concat(e0);
-        val = val.concat(v0);
+        val.push(v0);
         if (val.length === node.elts.length) {
           resume(err, val);
         }
@@ -453,9 +451,20 @@ export class Transformer extends Visitor {
     });
   }
   MAP(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
+    this.visit(node.elts[1], options, (e1, v1) => {
+      let err = [];
+      let val = [];
+      v1.forEach(args => {
+        options.args = args;
+        this.visit(node.elts[0], options, (e0, v0) => {
+          val.push(v0);
+          err = err.concat(e0);
+          if (val.length === v1.length) {
+            resume(err, val);
+          }
+        });
+      });
+    });
   }
   STYLE(node, options, resume) {
     const err = [];
@@ -498,8 +507,6 @@ export class Compiler {
       checker.check(options, (err, val) => {
         const transformer = new this.Transformer(code);
         transformer.transform(options, (err, val) => {
-          console.log("compile() err=" + JSON.stringify(err));
-          console.log("compile() val=" + JSON.stringify(val));
           if (err && err.length) {
             resume(err, val);
           } else {
