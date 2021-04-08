@@ -6,7 +6,7 @@ messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
 
-const ASYNC = false;
+const ASYNC = true;
 
 class Visitor {
   constructor(nodePool) {
@@ -67,18 +67,22 @@ export class Checker extends Visitor {
     resume(err, val);
   }
   LAMBDA(node, options, resume) {
+    const err = [];
+    const val = node;
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
-      const val = node;
       resume(err, val);
     });
   }
   LIST(node, options, resume) {
-    this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
-      const val = node;
+    const err = [];
+    const val = node;
+    if (node.elts.length === 0) {
       resume(err, val);
-    });
+    } else {
+      this.visit(node.elts[0], options, (e0, v0) => {
+        resume(err, val);
+      });
+    }
   }
   IDENT(node, options, resume) {
     const err = [];
@@ -329,14 +333,18 @@ export class Transformer extends Visitor {
   LIST(node, options, resume) {
     let err = [];
     let val = [];
-    for (let elt of node.elts) {
-      this.visit(elt, options, (e0, v0) => {
-        err = err.concat(e0);
-        val.push(v0);
-        if (val.length === node.elts.length) {
-          resume(err, val);
-        }
-      });
+    if (node.elts.length === 0) {
+      resume(err, val);
+    } else {
+      for (let elt of node.elts) {
+        this.visit(elt, options, (e0, v0) => {
+          err = err.concat(e0);
+          val.push(v0);
+          if (val.length === node.elts.length) {
+            resume(err, val);
+          }
+        });
+      }
     }
   }
   IDENT(node, options, resume) {
@@ -384,15 +392,19 @@ export class Transformer extends Visitor {
     let err = [];
     let val = {};
     let len = 0;
-    for (let elt of node.elts.reverse()) {
-      // Not sure why, but the bindings are reversed in the AST.
-      this.visit(elt, options, (e0, v0) => {
-        err = err.concat(e0);
-        val[v0.key] = v0.val;
-        if (++len === node.elts.length) {
-          resume(err, val);
-        }
-      });
+    if (node.elts.length === 0) {
+      resume(err, val);
+    } else {
+      for (let elt of node.elts.reverse()) {
+        // For historical reasons, the bindings are reversed in the AST.
+        this.visit(elt, options, (e0, v0) => {
+          err = err.concat(e0);
+          val[v0.key] = v0.val;
+          if (++len === node.elts.length) {
+            resume(err, val);
+          }
+        });
+      }
     }
   }
   MUL(node, options, resume) {
