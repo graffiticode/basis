@@ -4,8 +4,7 @@
   "version": "1.0.6",
   "description": "The basis library for creating Graffiticode languages",
   "main": "compiler.js",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/graffiticode/basis.git"
