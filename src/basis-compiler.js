@@ -6,7 +6,7 @@ messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
 
-const ASYNC = false;
+const ASYNC = true;
 
 class Visitor {
   constructor(nodePool) {
@@ -23,7 +23,7 @@ class Visitor {
     assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
     assert(this[node.tag], "2000: Visitor function not defined for: " + node.tag);
     assert(typeof resume === "function", message(1003));
-    if (ASYNC) {
+    if (!options.SYNC && ASYNC) {
       setTimeout(() => this[node.tag](node, options, resume), 0);
     } else {
       this[node.tag](node, options, resume);
@@ -524,6 +524,7 @@ export class Transformer extends Visitor {
   }
   CASE(node, options, resume) {
     // FIXME this isn't ASYNC compatible
+    options.SYNC = true;
     this.visit(node.elts[0], options, (err, expr) => {
       let foundMatch = false;
       for (var i = 1; i < node.elts.length; i++) {
@@ -537,8 +538,11 @@ export class Transformer extends Visitor {
           return;
         }
       }
-      resume([].concat("Match not found"), null);
+      if (!foundMatch) {
+        resume([], {})
+      }
     });
+    options.SYNC = false;
   }
   OF(node, options, resume) {
     this.visit(node.elts[0], options, function (err0, pattern) {
