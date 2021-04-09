@@ -463,21 +463,15 @@ export class Transformer extends Visitor {
     resume(err, val);
   }
   DATA(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
-    // If there is input data, then use it, otherwise use default data.
-    if (node.elts.length === 0) {
-      // No args, so use the given data or empty.
-      let data = options.data ? options.data : [];
-      resume([], data);
+    if (options.data && Object.keys(options.data).length != 0 || !node.elts[0]) {
+      const err = [];
+      const val = options.data ? options.data : {};
+      resume(err, val);
     } else {
-      visit(node.elts[0], options, function (err1, val1) {
-        if (false) {
-          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
-        }
-        let data = options.data && Object.keys(options.data).length != 0 ? options.data : val1;
-        resume([].concat(err1), data);
+      this.visit(node.elts[0], options, function (e0, v0) {
+        const err = e0;
+        const val = v0;
+        resume(err, val);
       });
     }
   }
