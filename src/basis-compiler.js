@@ -6,7 +6,7 @@ messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
 
-const ASYNC = true;
+const ASYNC = false;
 
 class Visitor {
   constructor(nodePool) {
@@ -506,6 +506,7 @@ export class Transformer extends Visitor {
       let val = [];
       v1.forEach(args => {
         options.args = args;
+        options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
         this.visit(node.elts[0], options, (e0, v0) => {
           val.push(v0);
           err = err.concat(e0);
@@ -522,12 +523,11 @@ export class Transformer extends Visitor {
     resume(err, val);
   }
   CASE(node, options, resume) {
+    // FIXME this isn't ASYNC compatible
     this.visit(node.elts[0], options, (err, expr) => {
       let foundMatch = false;
       for (var i = 1; i < node.elts.length; i++) {
         this.visit(node.elts[i], options, (err, val) => {
-          console.log("CASE() pattern=" + JSON.stringify(val.pattern));
-          console.log("CASE() expr=" + JSON.stringify(expr));
           if (expr === val.pattern) {
             this.visit(val.exprElt, options, resume);
             foundMatch = true;
