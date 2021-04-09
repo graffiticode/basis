@@ -1,5 +1,5 @@
-import * as basis from './src/basis-compiler.js'
-export const BasisChecker = basis.Checker;
-export const BasisTransformer = basis.Transformer;
-export const BasisRenderer = basis.Renderer;
-export const BasisCompiler = basis.Compiler;
+import * as basisCompiler from './src/basis-compiler.js'
+export const BasisChecker = basisCompiler.Checker;
+export const BasisTransformer = basisCompiler.Transformer;
+export const BasisRenderer = basisCompiler.Renderer;
+export const BasisCompiler = basisCompiler.Compiler;

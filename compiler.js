@@ -181,11 +181,6 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
-  IN(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
-  }
   DATA(node, options, resume) {
     const err = [];
     const val = node;
@@ -457,17 +452,14 @@ export class Transformer extends Visitor {
     const val = node;
     resume(err, val);
   }
-  IN(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
-  }
   DATA(node, options, resume) {
-    if (options.data && Object.keys(options.data).length != 0 || !node.elts[0]) {
+    if (options.data && Object.keys(options.data).length != 0) {
+      // Got external data, so use it.
       const err = [];
-      const val = options.data ? options.data : {};
+      const val = options.data;
       resume(err, val);
     } else {
+      // Otherwise, use the default data.
       this.visit(node.elts[0], options, function (e0, v0) {
         const err = e0;
         const val = v0;
