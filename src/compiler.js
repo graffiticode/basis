@@ -433,9 +433,13 @@ export class Transformer extends Visitor {
     });
   }
   VAL(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = v1[v0];
+        resume(err, val);
+      });
+    });
   }
   KEY(node, options, resume) {
     const err = [];
