@@ -583,7 +583,6 @@ export class Compiler {
           } else {
             const renderer = new this.Renderer(val);
             renderer.render(options, (err, val) => {
-              val = !(val instanceof Array) && [val] || val;
               resume(err, val);
             });
           }
