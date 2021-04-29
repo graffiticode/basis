@@ -257,7 +257,53 @@ function addWord(ctx, lexeme, entry) {
 function topEnv(ctx) {
   return ctx.env[ctx.env.length-1]
 }
-
+function match(options, patterns, node) {
+  if (patterns.size === 0 || node === undefined) {
+    return false;
+  }
+  let matches = patterns.filter(function (pattern) {
+    if (pattern.tag === undefined || node.tag === undefined) {
+      return false;
+    }
+    if (ast.intern(pattern) === ast.intern(node) ||
+        matchType(options, pattern, node)) {
+      return true;
+    }
+    if (pattern.tag === node.tag) {
+      if (pattern.elts.length === node.elts.length) {
+        // Same number of args, so see if each matches.
+        return pattern.elts.every(function (arg, i) {
+          if (pattern.tag === Model.VAR) {
+            if (arg === node.elts[i]) {
+              return true;
+            }
+            return false;
+          }
+          let result = match(options, [arg], node.elts[i]);
+          return result.length === 1;
+        });
+      } else if (pattern.elts.length < node.elts.length) {
+        // Different number of args, then see if there is a wildcard match.
+        let nargs = node.elts.slice(1);
+        if (pattern.elts.length === 2) {
+          // Binary node pattern
+          let result = (
+            match(options, [pattern.elts[0]], node.elts[0]).length > 0 &&
+              match(options, [pattern.elts[1]], newNode(node.tag, nargs)).length > 0
+            // Match rest of the node against the second pattern argument.
+          );
+          return result;
+        }
+      }
+    }
+    return false;
+  });
+  // if (matches.length > 0) {
+  //   console.log("match() node: " + JSON.stringify(node, null, 2));
+  //   console.log("match() matches: " + JSON.stringify(matches, null, 2));
+  // }
+  return matches;
+}
 export class Transformer extends Visitor {
   constructor(nodePool) {
     super(nodePool);
@@ -517,9 +563,10 @@ export class Transformer extends Visitor {
     options.SYNC = true;
     this.visit(node.elts[0], options, (err, expr) => {
       let foundMatch = false;
+      const patterns = [];
       for (var i = 1; i < node.elts.length; i++) {
         this.visit(node.elts[i], options, (err, val) => {
-          if (expr === val.pattern) {
+          if (match(options, val.pattern, expr)) {
             this.visit(val.exprElt, options, resume);
             foundMatch = true;
           }
