@@ -6,6 +6,10 @@ messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
 
+function error(msg, arg) {
+  return msg + arg;
+}
+
 const ASYNC = true;
 
 class Visitor {
@@ -102,8 +106,8 @@ export class Checker extends Visitor {
     });
   }
   ADD(node, options, resume) {
-    this.visit(node.elts[0], options, function (err1, val1) {
-      this.visit(node.elts[1], options, function (err2, val2) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
         if (isNaN(+val1)) {
           err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
         }
@@ -121,6 +125,11 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
+  NULL(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
   RECORD(node, options, resume) {
     const err = [];
     const val = node;
@@ -132,8 +141,8 @@ export class Checker extends Visitor {
     resume(err, val);
   }
   MUL(node, options, resume) {
-    this.visit(node.elts[0], options, function (err1, val1) {
-      this.visit(node.elts[1], options, function (err2, val2) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
         if (isNaN(+val1)) {
           err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
         }
@@ -147,8 +156,8 @@ export class Checker extends Visitor {
     });
   }
   POW(node, options, resume) {
-    this.visit(node.elts[0], options, function (err1, val1) {
-      this.visit(node.elts[1], options, function (err2, val2) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
         if (isNaN(+val1)) {
           err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
         }
@@ -365,7 +374,7 @@ export class Transformer extends Visitor {
         //   });
         }
       });
-      this.visit(node.elts[1], options, function (err, val) {
+      this.visit(node.elts[1], options, (err, val) => {
         exitEnv(options);
         resume([].concat(err0).concat(err).concat(err), val)
       });
@@ -420,6 +429,11 @@ export class Transformer extends Visitor {
     const val = node;
     resume(err, val);
   }
+  NULL(node, options, resume) {
+    const err = [];
+    const val = null;
+    resume(err, val);
+  }
   BINDING(node, options, resume) {
     const err = [];
     const val = node;
@@ -449,8 +463,8 @@ export class Transformer extends Visitor {
     }
   }
   MUL(node, options, resume) {
-    this.visit(node.elts[0], options, function (err1, val1) {
-      this.visit(node.elts[1], options, function (err2, val2) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
         if (isNaN(+val1)) {
           err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
         }
@@ -458,14 +472,14 @@ export class Transformer extends Visitor {
           err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
         }
         const err = [].concat(err1).concat(err2);
-        const val = node;
+        const val = +val1 * +val2;
         resume(err, val);
       });
     });
   }
   POW(node, options, resume) {
-    this.visit(node.elts[0], options, function (err1, val1) {
-      this.visit(node.elts[1], options, function (err2, val2) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
         if (isNaN(+val1)) {
           err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
         }
@@ -510,7 +524,7 @@ export class Transformer extends Visitor {
       resume(err, val);
     } else {
       // Otherwise, use the default data.
-      this.visit(node.elts[0], options, function (e0, v0) {
+      this.visit(node.elts[0], options, (e0, v0) => {
         const err = e0;
         const val = v0;
         resume(err, val);
@@ -518,7 +532,7 @@ export class Transformer extends Visitor {
     }
   }
   PAREN(node, options, resume) {
-    this.visit(node.elts[0], options, function (e0, v0) {
+    this.visit(node.elts[0], options, (e0, v0) => {
       const err = [].concat(e0);
       const val = v0;
       resume(err, val);
@@ -582,7 +596,7 @@ export class Transformer extends Visitor {
     options.SYNC = false;
   }
   OF(node, options, resume) {
-    this.visit(node.elts[0], options, function (err0, pattern) {
+    this.visit(node.elts[0], options, (err0, pattern) => {
       resume([].concat(err0), {
         pattern: pattern,
         exprElt: node.elts[1],
