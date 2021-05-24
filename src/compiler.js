@@ -10,11 +10,19 @@ function error(msg, arg) {
   return msg + arg;
 }
 
+function newNode(tag, elts) {
+  return {
+    tag: tag,
+    elts: elts,
+  };
+}
+
 const ASYNC = true;
 
 class Visitor {
-  constructor(nodePool) {
-    this.nodePool = nodePool;
+  constructor(code) {
+    this.nodePool = code;
+    this.root = code.root;
   }
   visit(nid, options, resume) {
     assert(nid);
@@ -33,6 +41,34 @@ class Visitor {
       this[node.tag](node, options, resume);
     }
   }
+  node(nid) {
+    var n = this.nodePool[nid];
+    if (!nid) {
+      return null;
+    } else if (!n) {
+      return {};
+    }
+    var elts = [];
+    switch (n.tag) {
+    case "NULL":
+      break;
+    case "NUM":
+    case "STR":
+    case "IDENT":
+    case "BOOL":
+      elts[0] = n.elts[0];
+      break;
+    default:
+      for (var i=0; i < n.elts.length; i++) {
+        elts[i] = this.node(n.elts[i]);
+      }
+      break;
+    }
+    return {
+      tag: n.tag,
+      elts: elts,
+    };
+  }
 }
 
 export class Checker extends Visitor {
@@ -40,7 +76,7 @@ export class Checker extends Visitor {
     super(nodePool);
   }
   check(options, resume) {
-    const nid = this.nodePool.root;
+    const nid = this.root;
     this.visit(nid, options, (err, data) => {
       resume(err, data);
     });
@@ -266,63 +302,96 @@ function addWord(ctx, lexeme, entry) {
 function topEnv(ctx) {
   return ctx.env[ctx.env.length-1]
 }
-function match(options, patterns, node) {
-  if (patterns.size === 0 || node === undefined) {
-    return false;
-  }
-  let matches = patterns.filter(function (pattern) {
-    if (pattern.tag === undefined || node.tag === undefined) {
-      return false;
-    }
-    if (ast.intern(pattern) === ast.intern(node) ||
-        matchType(options, pattern, node)) {
-      return true;
-    }
-    if (pattern.tag === node.tag) {
-      if (pattern.elts.length === node.elts.length) {
-        // Same number of args, so see if each matches.
-        return pattern.elts.every(function (arg, i) {
-          if (pattern.tag === Model.VAR) {
-            if (arg === node.elts[i]) {
-              return true;
-            }
-            return false;
-          }
-          let result = match(options, [arg], node.elts[i]);
-          return result.length === 1;
-        });
-      } else if (pattern.elts.length < node.elts.length) {
-        // Different number of args, then see if there is a wildcard match.
-        let nargs = node.elts.slice(1);
-        if (pattern.elts.length === 2) {
-          // Binary node pattern
-          let result = (
-            match(options, [pattern.elts[0]], node.elts[0]).length > 0 &&
-              match(options, [pattern.elts[1]], newNode(node.tag, nargs)).length > 0
-            // Match rest of the node against the second pattern argument.
-          );
-          return result;
-        }
-      }
-    }
-    return false;
-  });
-  // if (matches.length > 0) {
-  //   console.log("match() node: " + JSON.stringify(node, null, 2));
-  //   console.log("match() matches: " + JSON.stringify(matches, null, 2));
-  // }
-  return matches;
-}
 export class Transformer extends Visitor {
   constructor(nodePool) {
     super(nodePool);
+    this.patternNodePool = ['unused'];
+    this.patternNodeMap = {};
   }
   transform(options, resume) {
-    const nid = this.nodePool.root;
+    const nid = this.root;
     this.visit(nid, options, (err, data) => {
       resume(err, data);
     });
   }
+  internPattern(n) {
+    if (!n) {
+      return 0;
+    }
+    const nodeMap = this.patternNodeMap;
+    const nodePool = this.patternNodePool;
+    const tag = n.tag;
+    const elts_nids = [];
+    const count = n.elts.length;
+    let elts = "";
+    for (let i = 0; i < count; i++) {
+      if (typeof n.elts[i] === "object") {
+        n.elts[i] = this.internPattern(n.elts[i]);
+      }
+      elts += n.elts[i];
+    }
+    const key = tag+count+elts;
+    let nid = nodeMap[key];
+    if (nid === void 0) {
+      nodePool.push({tag: tag, elts: n.elts});
+      nid = nodePool.length - 1;
+      nodeMap[key] = nid;
+      if (n.coord) {
+        ctx.state.coords[nid] = n.coord;
+      }
+    }
+    return nid;
+  }
+  match(options, patterns, node) {
+    if (patterns.size === 0 || node === undefined) {
+      return false;
+    }
+    let matches = patterns.filter((pattern) => {
+      if (pattern.tag === undefined || node.tag === undefined) {
+        return false;
+      }
+      const patternNid = this.internPattern(pattern); 
+      if (patternNid === this.internPattern(node) ||
+          patternNid === this.internPattern(newNode('IDENT', ['_']))) {
+        return true;
+      }
+      if (pattern.tag === node.tag) {
+        if (pattern.elts.length === node.elts.length) {
+          // Same number of args, so see if each matches.
+          return pattern.elts.every((arg, i) => {
+            if (pattern.tag === 'VAR') {
+              if (arg === node.elts[i]) {
+                return true;
+              }
+              return false;
+            }
+            let result = this.match(options, [arg], node.elts[i]);
+            return result.length === 1;
+          });
+        } else if (pattern.elts.length < node.elts.length) {
+          // Different number of args, then see if there is a wildcard match.
+          let nargs = node.elts.slice(1);
+          if (pattern.elts.length === 2) {
+            // Binary node pattern
+            let result = (
+              this.match(options, [pattern.elts[0]], node.elts[0]).length > 0 &&
+              this.match(options, [pattern.elts[1]], newNode(node.tag, nargs)).length > 0
+              // Match rest of the node against the second pattern argument.
+            );
+            return result;
+          }
+        }
+      }
+      return false;
+    });
+    // if (true || matches.length > 0) {
+    //   console.log("match() node: " + JSON.stringify(node, null, 2));
+    //   console.log("match() matches: " + JSON.stringify(matches, null, 2));
+    // }
+    return matches;
+  }
+
+
   PROG(node, options, resume) {
     if (!options) {
       options = {};
@@ -575,12 +644,14 @@ export class Transformer extends Visitor {
   CASE(node, options, resume) {
     // FIXME this isn't ASYNC compatible
     options.SYNC = true;
-    this.visit(node.elts[0], options, (err, expr) => {
+    this.visit(node.elts[0], options, (err, e0) => {
+      const e0Node = this.node(node.elts[0]);
+      const expr = (e0Node.tag === 'NUM' || e0Node.tag === 'NUM') && e0Node || {tag: 'STR', elts: [`${e0}`]};
       let foundMatch = false;
       const patterns = [];
       for (var i = 1; i < node.elts.length; i++) {
         this.visit(node.elts[i], options, (err, val) => {
-          if (match(options, val.pattern, expr)) {
+          if (this.match(options, [this.node(node.elts[i]).elts[0]], expr).length) {
             this.visit(val.exprElt, options, resume);
             foundMatch = true;
           }
