@@ -3,8 +3,10 @@
   "type": "module",
   "version": "1.0.11",
   "description": "The basis library for creating Graffiticode languages",
-  "main": "compiler.js",
-  "scripts": {},
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/graffiticode/basis.git"
@@ -19,6 +21,7 @@
     "d3": "^6.6.2",
     "hashids": "^2.2.8",
     "https": "^1.0.0",
+    "jest": "^27.0.1",
     "react": "^17.0.2"
   }
 }

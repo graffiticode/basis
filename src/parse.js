@@ -1,33 +1,10 @@
 // Copyright 2021, ARTCOMPILER INC
 
-var CodeMirror;
-if (typeof CodeMirror === "undefined") {
-  var CodeMirror = {
-    Pos: function () {
-      return {};
-    }
-  };
-}
-
-var window;
-if (typeof window === "undefined") {
-  var window = {};
-  window = {
-    gcexports: {
-      coords: {},
-    },
-    errors: [],
-    isSynthetic: true,
-  };
-}
-
 function assert(b, str) {
   if (!b) throw str;
 }
 
-// ast module
-
-var Ast = (function () {
+const Ast = (function () {
   var ASSERT = true;
   var assert = function (val, str) {
     if ( !ASSERT ) {
@@ -1765,101 +1742,10 @@ window.gcexports.parser = (function () {
 
   // Drive the parser
 
-  function compileCode(ast, postCode) {
-    const gcexports = window.gcexports;
-    lastAST = ast;
-    ast = JSON.stringify(ast);
-    var src = gcexports.editor.getValue();
-    // HACK need general support for unicode.
-    src = src.replace(/[\u2212]/g, "-");
-    ast = ast.replace(/[\u2212]/g, "-");
-    $.ajax({
-      type: "POST",
-      url: "/code",
-      data: {
-        "id": postCode ? null : gcexports.id,
-        "forkID": gcexports.forkID || 0,
-        "parent": postCode ? gcexports.id : null,
-        "ast": ast,
-        "type": gcexports.lexiconType,
-        "language": gcexports.language,
-        "src": src,
-        "jwt": localStorage.getItem("accessToken"),
-        "userID": localStorage.getItem("userID"),
-      },
-      dataType: "json",
-      success: function(data) {
-        var obj = data.obj;
-        gcexports.lastErrors = gcexports.errors = [];
-        // We have a good id, so use it.
-        let ids = gcexports.decodeID(data.id);
-        let codeIDs = ids.slice(0, 2);
-        let dataIDs = gcexports.decodeID(gcexports.id).slice(2);
-        let id = gcexports.encodeID(codeIDs.concat(dataIDs));
-        gcexports.id = id;
-        let location = "/" + gcexports.view + "?id=" + id;
-        window.history.pushState(id, gcexports.language, location);
-        console.log("/" + gcexports.view + "?id=" + codeIDs.concat(gcexports.encodeID(dataIDs)).join("+"));
-        let state = {};
-        state[gcexports.id] = {
-          id: id,
-          src: src,
-          ast: ast,
-          postCode: postCode,
-          obj: obj,
-        };
-        gcexports.dispatcher.dispatch(state);
-        gcexports.forkID = data.forkID;
-        gcexports.editor.performLint();
-        gcexports.updateMarkAndLabel(gcexports.id);
-      },
-      error: function(xhr, msg, err) {
-        console.log("ERROR " + msg + " " + err);
-        let state = {};
-        state[gcexports.id] = {
-          status: xhr.status,
-          message: msg,
-          error: err,
-        };
-        gcexports.dispatcher.dispatch(state);
-      }
-    });
-  }
-
-  function saveSrc() {
-    if (window.gcexports.errors.length) {
-      console.log("saveSrc() errors=" + JSON.stringify(window.gcexport.errors));
-      return;
-    }
-    // Update SRC for a given ID.
-    var id = window.gcexports.id;
-    let ids = window.gcexports.decodeID(id);
-    let codeID = ids[1];
-    var src = window.gcexports.editor.getValue();
-    $.ajax({
-      type: "PUT",
-      url: "/code",
-      data: {
-        "id": codeID,
-        "src": src,
-      },
-      dataType: "json",
-      success: function(data) {
-      },
-      error: function(xhr, msg, err) {
-        console.log("ERROR " + msg + " " + err);
-      }
-    });
-  }
-
   function topEnv(ctx) {
     return ctx.state.env[ctx.state.env.length-1];
   }
 
-  window.gcexports.topEnv = topEnv;
-  window.gcexports.firstTime = true;
-  var lastAST;
-  var lastTimer;
   function parse(stream, state, resume) {
     var ctx = {
       scan: scanner(stream, state.env[0].lexicon),
@@ -1893,32 +1779,6 @@ window.gcexports.parser = (function () {
             resume(state.errors);
           } else {
             resume(null, Ast.poolToJSON(ctx));
-          }
-        } else if (state.errors.length === 0) {
-          window.gcexports.errors = [];
-          var thisAST = Ast.poolToJSON(ctx);
-          if (lastTimer) {
-            // Reset timer to wait another second pause.
-            window.clearTimeout(lastTimer);
-          }
-          if (JSON.stringify(lastAST) !== JSON.stringify(thisAST)) {
-            // Compile code if not first time (newly loaded) and no edit
-            // activity after 1 sec.
-            if (!window.gcexports.firstTime) {
-              lastTimer = window.setTimeout(function () {
-                if (gcexports.errors && gcexports.errors.length === 0) {
-                  compileCode(thisAST, true);
-                }
-              }, 1000);
-            }
-            window.gcexports.firstTime = false;
-          } else {
-            // The AST hasn't changed, but the text has so save the code.
-            lastTimer = window.setTimeout(function () {
-              window.gcexports.errors = window.gcexports.lastErrors;
-              window.gcexports.editor.performLint();
-              saveSrc();
-            }, 1000);
           }
         } else {
           window.gcexports.errors = state.errors;
@@ -2185,19 +2045,11 @@ window.gcexports.parser = (function () {
     token: function(stream, state) {
       return parse(stream, state)
     },
-
     parse: parse,
     program: program,
   }
 
   window.gcexports.parse = parser.parse
-  if (window.isSynthetic) {
-    // Export in node.
-    exports.parse = window.gcexports.parse;
-    exports.StringStream = window.gcexports.StringStream;
-    exports.program = program;
-  }
-
   return parser
 })(); // end parser
 
