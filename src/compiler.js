@@ -100,6 +100,9 @@ export class Checker extends Visitor {
         }
       });
     }
+    if (node.elts.length === 0) {
+      resume(err, val);
+    }
   }
   NUM(node, options, resume) {
     const err = [];
@@ -413,6 +416,10 @@ export class Transformer extends Visitor {
           resume(err, val);
         }
       });
+    }
+    if (node.elts.length === 0) {
+      val.push("");
+      resume(err, val);
     }
   }
   NUM(node, options, resume) {
