@@ -502,7 +502,7 @@ export class Transformer extends Visitor {
   }
   BOOL(node, options, resume) {
     const err = [];
-    const val = node;
+    const val = node.elts[0];
     resume(err, val);
   }
   NULL(node, options, resume) {
@@ -593,7 +593,7 @@ export class Transformer extends Visitor {
     resume(err, val);
   }
   DATA(node, options, resume) {
-    if (options.data && Object.keys(options.data).length != 0) {
+    if (options.data && Object.keys(options.data).length !== 0) {
       // Got external data, so use it.
       const err = [];
       const val = options.data;
