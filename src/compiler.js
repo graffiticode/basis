@@ -56,7 +56,6 @@ class Visitor {
     case "STR":
     case "IDENT":
     case "BOOL":
-    case "JSON":
       elts[0] = n.elts[0];
       break;
     default:
@@ -139,9 +138,12 @@ export class Checker extends Visitor {
     resume(err, val);
   }
   JSON(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
+    this.visit(node.elts[0], options, (e0, v0) => {
+      assert(v0.tag === "STR");
+      const err = [];
+      const val = node;
+      resume(err, val);
+    });
   }
   CONCAT(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
@@ -491,9 +493,11 @@ export class Transformer extends Visitor {
     resume(err, val);
   }
   JSON(node, options, resume) {
-    const err = [];
-    const val = JSON.parse(node.elts[0]);
-    resume(err, val);
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [];
+      const val = JSON.parse(v0);
+      resume(err, val);
+    });
   }
   CONCAT(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
