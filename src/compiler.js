@@ -25,20 +25,25 @@ class Visitor {
     this.root = code.root;
   }
   visit(nid, options, resume) {
-    assert(nid);
-    let node;
-    if (typeof nid === "object") {
-      node = nid;
-    } else {
-      node = this.nodePool[nid];
-    }
-    assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
-    assert(this[node.tag], "2000: Visitor function not defined for: " + node.tag);
-    assert(typeof resume === "function", message(1003));
-    if (!options.SYNC && ASYNC) {
-      setTimeout(() => this[node.tag](node, options, resume), 0);
-    } else {
-      this[node.tag](node, options, resume);
+    try {
+      assert(nid);
+      let node;
+      if (typeof nid === "object") {
+        node = nid;
+      } else {
+        node = this.nodePool[nid];
+      }
+      assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
+      assert(this[node.tag], "2000: Visitor function not defined for: " + node.tag);
+      assert(typeof resume === "function", message(1003));
+      if (!options.SYNC && ASYNC) {
+        // This is used to keep from blowing the call stack.
+        setTimeout(() => this[node.tag](node, options, resume), 0);
+      } else {
+        this[node.tag](node, options, resume);
+      }
+    } catch (x) {
+      resume(error(x.stack));
     }
   }
   node(nid) {
@@ -139,7 +144,7 @@ export class Checker extends Visitor {
   }
   JSON(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      assert(v0.tag === "STR");
+      assert(v0.tag === "STR", JSON.stringify(v0, null, 2));
       const err = [];
       const val = node;
       resume(err, val);
