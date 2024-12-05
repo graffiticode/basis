@@ -555,7 +555,7 @@ export class Transformer extends Visitor {
             // This is a little trickery to restore the original order of the,
             // given that they may have been reordered do to the node being
             // visited asynchronously.
-            const val = index.reduce((acc, v0) => ({...acc, [v0.key]: v0.val}), {});
+            const val = ndx.reduce((acc, v0) => ({...acc, [v0.key]: v0.val}), {});
             resume(err, val);
           }
         });
