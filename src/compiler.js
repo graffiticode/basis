@@ -541,17 +541,21 @@ export class Transformer extends Visitor {
   }
   RECORD(node, options, resume) {
     let err = [];
-    let val = {};
     let len = 0;
     if (node.elts.length === 0) {
       resume(err, val);
     } else {
+      const ndx = [];
       for (let elt of node.elts.reverse()) {
         // For historical reasons, the bindings are reversed in the AST.
         this.visit(elt, options, (e0, v0) => {
           err = err.concat(e0);
-          val[v0.key] = v0.val;
+          ndx[elt] = v0;
           if (++len === node.elts.length) {
+            // This is a little trickery to restore the original order of the,
+            // given that they may have been reordered do to the node being
+            // visited asynchronously.
+            const val = index.reduce((acc, v0) => ({...acc, [v0.key]: v0.val}), {});
             resume(err, val);
           }
         });
@@ -613,19 +617,15 @@ export class Transformer extends Visitor {
     resume(err, val);
   }
   DATA(node, options, resume) {
-    if (options.data && Object.keys(options.data).length !== 0) {
-      // Got external data, so use it.
-      const err = [];
-      const val = options.data;
-      resume(err, val);
-    } else {
-      // Otherwise, use the default data.
-      this.visit(node.elts[0], options, (e0, v0) => {
-        const err = e0;
-        const val = v0;
-        resume(err, val);
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const data = options.data || {};
+      const err = e0;
+      const val = v0;
+      resume(err, {
+        ...val,
+        ...data,  // External data overrides internal data.
       });
-    }
+    });
   }
   PAREN(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
