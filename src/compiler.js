@@ -552,9 +552,9 @@ export class Transformer extends Visitor {
           err = err.concat(e0);
           ndx[elt] = v0;
           if (++len === node.elts.length) {
-            // This is a little trickery to restore the original order of the,
-            // given that they may have been reordered do to the node being
-            // visited asynchronously.
+            // This is a little trickery to restore the original order of the
+            // rules, given that they may have been reordered due to the nodes
+            // being visited asynchronously.
             const val = ndx.reduce((acc, v0) => ({...acc, [v0.key]: v0.val}), {});
             resume(err, val);
           }
