@@ -471,15 +471,21 @@ export class Transformer extends Visitor {
   }
   LIST(node, options, resume) {
     let err = [];
-    let val = [];
     if (node.elts.length === 0) {
-      resume(err, val);
+      resume(err, []);
     } else {
+      let len = 0;
+      const ndx = [];
       for (let elt of node.elts) {
         this.visit(elt, options, (e0, v0) => {
           err = err.concat(e0);
-          val.push(v0);
-          if (val.length === node.elts.length) {
+          ndx[elt] = v0;
+          if (++len === node.elts.length) {
+            // This is a little trickery to restore the original order of the
+            // elements, given that they may have been reordered due to the
+            // nodes being visited asynchronously. The node ids are reversed,
+            // so we need to add prepend the current v0 to the list.
+            const val = ndx.reduce((acc, v0) => [v0, ...acc], []);
             resume(err, val);
           }
         });
@@ -541,19 +547,18 @@ export class Transformer extends Visitor {
   }
   RECORD(node, options, resume) {
     let err = [];
-    let len = 0;
     if (node.elts.length === 0) {
-      resume(err, val);
+      resume(err, {});
     } else {
+      let len = 0;
       const ndx = [];
-      for (let elt of node.elts.reverse()) {
-        // For historical reasons, the bindings are reversed in the AST.
+      for (let elt of node.elts) {
         this.visit(elt, options, (e0, v0) => {
           err = err.concat(e0);
           ndx[elt] = v0;
           if (++len === node.elts.length) {
             // This is a little trickery to restore the original order of the
-            // rules, given that they may have been reordered due to the nodes
+            // fields, given that they may have been reordered due to the nodes
             // being visited asynchronously.
             const val = ndx.reduce((acc, v0) => ({...acc, [v0.key]: v0.val}), {});
             resume(err, val);
