@@ -366,7 +366,7 @@ export class Transformer extends Visitor {
       if (pattern.tag === undefined || node.tag === undefined) {
         return false;
       }
-      const patternNid = this.internPattern(pattern); 
+      const patternNid = this.internPattern(pattern);
       if (patternNid === this.internPattern(node) ||
           patternNid === this.internPattern(newNode('IDENT', ['_']))) {
         return true;
@@ -485,7 +485,7 @@ export class Transformer extends Visitor {
             // elements, given that they may have been reordered due to the
             // nodes being visited asynchronously. The node ids are reversed,
             // so we need to add prepend the current v0 to the list.
-            const val = ndx.reduce((acc, v0) => [v0, ...acc], []);
+            const val = node.elts.reduce((acc, elt) => [...acc, ndx[elt]], []);
             resume(err, val);
           }
         });
@@ -560,7 +560,7 @@ export class Transformer extends Visitor {
             // This is a little trickery to restore the original order of the
             // fields, given that they may have been reordered due to the nodes
             // being visited asynchronously.
-            const val = ndx.reduce((acc, v0) => ({...acc, [v0.key]: v0.val}), {});
+            const val = node.elts.reduce((acc, elt) => ({...acc, [ndx[elt].key]: ndx[elt].val}), {});
             resume(err, val);
           }
         });
