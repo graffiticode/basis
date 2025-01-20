@@ -33,14 +33,19 @@ class Visitor {
       } else {
         node = this.nodePool[nid];
       }
+      console.log(
+        "Visitor/visit()",
+        "node.tag=" + node.tag,
+      );
+      const fn = (this[node.tag] || this["CATCH_ALL"]).bind(this);
       assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
-      assert(this[node.tag], "2000: Visitor function not defined for: " + node.tag);
+      assert(fn, "2000: Visitor function not defined for: " + node.tag);
       assert(typeof resume === "function", message(1003));
       if (!options.SYNC && ASYNC) {
         // This is used to keep from blowing the call stack.
-        setTimeout(() => this[node.tag](node, options, resume), 0);
+        setTimeout(() => fn(node, options, resume), 0);
       } else {
-        this[node.tag](node, options, resume);
+        fn(node, options, resume);
       }
     } catch (x) {
       resume(error(x.stack));
@@ -406,7 +411,6 @@ export class Transformer extends Visitor {
     // }
     return matches;
   }
-
 
   PROG(node, options, resume) {
     if (!options) {
