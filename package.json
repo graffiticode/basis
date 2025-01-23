@@ -1,11 +1,14 @@
 {
   "name": "@graffiticode/basis",
   "type": "module",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "description": "The basis library for creating Graffiticode languages",
   "main": "index.js",
   "scripts": {
     "test": "jest"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "repository": {
     "type": "git",

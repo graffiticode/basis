@@ -33,10 +33,10 @@ class Visitor {
       } else {
         node = this.nodePool[nid];
       }
-      console.log(
-        "Visitor/visit()",
-        "node.tag=" + node.tag,
-      );
+      // console.log(
+      //   "Visitor/visit()",
+      //   "node.tag=" + node.tag,
+      // );
       const fn = (this[node.tag] || this["CATCH_ALL"]).bind(this);
       assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
       assert(fn, "2000: Visitor function not defined for: " + node.tag);
