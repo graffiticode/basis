@@ -33,16 +33,12 @@ class Visitor {
       } else {
         node = this.nodePool[nid];
       }
-      console.log(
-        "Visitor/visit()",
-        "nodePool=" + JSON.stringify(this.nodePool, null, 2),
-        "node.tag=" + node.tag,
-      );
+      // console.log(
+      //   "Visitor/visit()",
+      //   "nodePool=" + JSON.stringify(this.nodePool, null, 2),
+      //   "node.tag=" + node.tag,
+      // );
       const fn = (this[node.tag] || this["CATCH_ALL"])?.bind(this);
-      console.log(
-        "Vistor/visit()",
-        "fn=" + fn,
-      );
       assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
       assert(fn, "2000: Visitor function not defined for: " + node.tag);
       assert(typeof resume === "function", message(1003));
@@ -55,7 +51,7 @@ class Visitor {
     } catch (x) {
       console.log(
         "Vistor/visit()",
-        x
+        "ERROR: " + x
       );
       resume(error(x.stack));
     }
@@ -378,6 +374,11 @@ export class Transformer extends Visitor {
     return nid;
   }
   match(options, patterns, node) {
+    // console.log(
+    //   "match()",
+    //   "patterns=" + JSON.stringify(patterns, null, 2),
+    //   "node=" + JSON.stringify(node, null, 2),
+    // );
     if (patterns.size === 0 || node === undefined) {
       return false;
     }
@@ -694,13 +695,13 @@ export class Transformer extends Visitor {
   CASE(node, options, resume) {
     // FIXME this isn't ASYNC compatible
     options.SYNC = true;
-    this.visit(node.elts[0], options, (err, e0) => {
+    this.visit(node.elts[0], options, (e0, v0) => {
       const e0Node = this.node(node.elts[0]);
       const expr = (
         e0Node.tag === 'NUM' ||
           e0Node.tag === 'NUM'
       ) && e0Node || {
-        tag: 'STR', elts: [`${e0}`]
+        tag: 'STR', elts: [`${v0}`]
       };
       let foundMatch = false;
       const patterns = [];
