@@ -33,12 +33,16 @@ class Visitor {
       } else {
         node = this.nodePool[nid];
       }
-      // console.log(
-      //   "Visitor/visit()",
-      //   "nodePool=" + JSON.stringify(this.nodePool, null, 2),
-      //   "node.tag=" + node.tag,
-      // );
+      console.log(
+        "Visitor/visit()",
+        "nodePool=" + JSON.stringify(this.nodePool, null, 2),
+        "node.tag=" + node.tag,
+      );
       const fn = (this[node.tag] || this["CATCH_ALL"])?.bind(this);
+      console.log(
+        "Vistor/visit()",
+        "fn=" + fn,
+      );
       assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
       assert(fn, "2000: Visitor function not defined for: " + node.tag);
       assert(typeof resume === "function", message(1003));
@@ -49,6 +53,10 @@ class Visitor {
         fn(node, options, resume);
       }
     } catch (x) {
+      console.log(
+        "Vistor/visit()",
+        x
+      );
       resume(error(x.stack));
     }
   }
@@ -274,6 +282,11 @@ export class Checker extends Visitor {
     resume(err, val);
   }
   CASE(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  IF(node, options, resume) {
     const err = [];
     const val = node;
     resume(err, val);
@@ -683,7 +696,12 @@ export class Transformer extends Visitor {
     options.SYNC = true;
     this.visit(node.elts[0], options, (err, e0) => {
       const e0Node = this.node(node.elts[0]);
-      const expr = (e0Node.tag === 'NUM' || e0Node.tag === 'NUM') && e0Node || {tag: 'STR', elts: [`${e0}`]};
+      const expr = (
+        e0Node.tag === 'NUM' ||
+          e0Node.tag === 'NUM'
+      ) && e0Node || {
+        tag: 'STR', elts: [`${e0}`]
+      };
       let foundMatch = false;
       const patterns = [];
       for (var i = 1; i < node.elts.length; i++) {
@@ -709,6 +727,29 @@ export class Transformer extends Visitor {
         pattern: pattern,
         exprElt: node.elts[1],
       });
+    });
+  }
+  IF(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      if (!!v0) {
+        this.visit(node.elts[1], options, (e1, v1) => {
+          const err = [
+            ...e0,
+            ...e1,
+          ];
+          const val = v1;
+          resume(err, val);
+        });
+      } else {
+        this.visit(node.elts[2], options, (e2, v2) => {
+          const err = [
+            ...e0,
+            ...e2,
+          ];
+          const val = v2;
+          resume(err, val);
+        });
+      }
     });
   }
 }
