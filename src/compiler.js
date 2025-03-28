@@ -698,7 +698,7 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const e0Node = this.node(node.elts[0]);
       const expr = (
-        e0Node.tag === 'NUM' ||
+        e0Node.tag === 'BOOL' ||
           e0Node.tag === 'NUM'
       ) && e0Node || {
         tag: 'STR', elts: [`${v0}`]
