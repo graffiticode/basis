@@ -292,6 +292,11 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
+  PRINT(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -545,6 +550,15 @@ export class Transformer extends Visitor {
       });
     });
   }
+  SUB(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = +v0 - +v1;
+        resume(err, val);
+      });
+    });
+  }
   BOOL(node, options, resume) {
     const err = [];
     const val = node.elts[0];
@@ -671,10 +685,16 @@ export class Transformer extends Visitor {
     });
   }
   MAP(node, options, resume) {
+    // FIXME make async
+    options.SYNC = true;
     this.visit(node.elts[1], options, (e1, v1) => {
       let err = [];
       let val = [];
       v1.forEach(args => {
+        console.log(
+          "MAP()",
+          "args=" + JSON.stringify(args),
+        );
         options.args = args;
         options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
         this.visit(node.elts[0], options, (e0, v0) => {
@@ -686,6 +706,32 @@ export class Transformer extends Visitor {
         });
       });
     });
+    options.SYNC = false;
+  }
+  FILTER(node, options, resume) {
+    // FIXME make async
+    options.SYNC = true;
+    this.visit(node.elts[1], options, (e1, v1) => {
+      let err = [];
+      let val = [];
+      v1.forEach(args => {
+        options.args = args;
+        options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
+        this.visit(node.elts[0], options, (e0, v0) => {
+          if (!!v0) {
+            val.push(args);
+          } else {
+            val.push(null);
+          }
+          err = err.concat(e0);
+          if (val.length === v1.length) {
+            val = val.filter(v => v !== null);
+            resume(err, val);
+          }
+        });
+      });
+    });
+    options.SYNC = false;
   }
   STYLE(node, options, resume) {
     const err = [];
@@ -752,6 +798,46 @@ export class Transformer extends Visitor {
         });
       }
     });
+  }
+  GET(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [...e0, ...e1];
+        assert(typeof v0 === "object", "Type Error: expected v0 to be an object.");
+        assert(typeof v1 === "string", "Type Error: expected v1 to be a string.");
+        const val = v0[v1];
+        resume(err, val);
+      });
+    });
+  }
+  NTH(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        console.log(
+          "NTH()",
+          "v0=" + JSON.stringify(v0),
+          "v1=" + JSON.stringify(v1),
+        );
+        const err = [...e0, ...e1];
+        assert(typeof v0 === "number", "Type Error: expected v0 to be a number. Got " + (typeof v0));
+        assert(typeof v1 === "object", "Type Error: expected v1 to be an object. Got " + (typeof v1));
+        const val = v1[v0];
+        console.log(
+          "NTH()",
+          "val=" + JSON.stringify(val),
+        );
+        resume(err, val);
+      });
+    });
+  }
+  PRINT(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = e0;
+      const val = {
+        print: v0,
+      };
+      resume(err, val);
+    })
   }
 }
 
