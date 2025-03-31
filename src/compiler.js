@@ -272,6 +272,11 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
+  REDUCE(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
   STYLE(node, options, resume) {
     const err = [];
     const val = node;
@@ -471,7 +476,7 @@ export class Transformer extends Visitor {
       enterEnv(options, "lambda", params.length);
       params.forEach((param, i) => {
         // let inits = this.nodePool[node.elts[3]].elts;
-        if (args[i]) {
+        if (args[i] !== undefined) {
           // Got an arg so use it.
           addWord(options, param, {
             name: param,
@@ -519,7 +524,7 @@ export class Transformer extends Visitor {
   IDENT(node, options, resume) {
     let word = findWord(options, node.elts[0]);
     const err = [];
-    const val = word && word.val || node.elts[0];
+    const val = word?.val !== undefined ? word.val : node.elts[0];
     resume(err, val);
   }
   STR(node, options, resume) {
@@ -677,7 +682,6 @@ export class Transformer extends Visitor {
     this.visit(node.elts[1], options, (e1, v1) => {
       options.args = v1;
       this.visit(node.elts[0], options, (e0, v0) => {
-        //exitEnv(options);
         const err = [].concat(e1).concat(e0);
         const val = v0;
         resume(err, val);
@@ -691,10 +695,6 @@ export class Transformer extends Visitor {
       let err = [];
       let val = [];
       v1.forEach(args => {
-        console.log(
-          "MAP()",
-          "args=" + JSON.stringify(args),
-        );
         options.args = args;
         options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
         this.visit(node.elts[0], options, (e0, v0) => {
@@ -728,6 +728,29 @@ export class Transformer extends Visitor {
             val = val.filter(v => v !== null);
             resume(err, val);
           }
+        });
+      });
+    });
+    options.SYNC = false;
+  }
+  REDUCE(node, options, resume) {
+    // FIXME make async
+    // reduce (fn) acc list
+    options.SYNC = true;
+    this.visit(node.elts[1], options, (e1, v1) => {
+      this.visit(node.elts[2], options, (e2, v2) => {
+        let err = [];
+        let val = v1;
+        v2.forEach((args, index) => {
+          options.args = [val, args];
+          options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
+          this.visit(node.elts[0], options, (e0, v0) => {
+            val = v0;
+            err = err.concat(e0);
+            if (index === v2.length - 1) {
+              resume(err, val);
+            }
+          });
         });
       });
     });
@@ -813,19 +836,10 @@ export class Transformer extends Visitor {
   NTH(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
-        console.log(
-          "NTH()",
-          "v0=" + JSON.stringify(v0),
-          "v1=" + JSON.stringify(v1),
-        );
         const err = [...e0, ...e1];
         assert(typeof v0 === "number", "Type Error: expected v0 to be a number. Got " + (typeof v0));
         assert(typeof v1 === "object", "Type Error: expected v1 to be an object. Got " + (typeof v1));
         const val = v1[v0];
-        console.log(
-          "NTH()",
-          "val=" + JSON.stringify(val),
-        );
         resume(err, val);
       });
     });
