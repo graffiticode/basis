@@ -170,12 +170,30 @@ export class Checker extends Visitor {
   ADD(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        if (isNaN(+val1)) {
-          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
-        }
-        if (isNaN(+val2)) {
-          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
-        }
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  SUB(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  LT(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        // if (isNaN(+val1)) {
+        //   err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        // }
+        // if (isNaN(+val2)) {
+        //   err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+        // }
         const err = [].concat(err1).concat(err2);
         const val = node;
         resume(err, val);
@@ -205,12 +223,6 @@ export class Checker extends Visitor {
   MUL(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        if (isNaN(+val1)) {
-          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
-        }
-        if (isNaN(+val2)) {
-          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
-        }
         const err = [].concat(err1).concat(err2);
         const val = node;
         resume(err, val);
@@ -220,12 +232,6 @@ export class Checker extends Visitor {
   POW(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        if (isNaN(+val1)) {
-          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
-        }
-        if (isNaN(+val2)) {
-          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
-        }
         const err = [].concat(err1).concat(err2);
         const val = node;
         resume(err, val);
@@ -564,6 +570,15 @@ export class Transformer extends Visitor {
       });
     });
   }
+  LT(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = +v0 < +v1;
+        resume(err, val);
+      });
+    });
+  }
   BOOL(node, options, resume) {
     const err = [];
     const val = node.elts[0];
@@ -609,10 +624,10 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
         if (isNaN(+val1)) {
-          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+          err1 = err1.concat(error("MUL first argument must be a number: ", JSON.stringify(node, null, 2)));
         }
         if (isNaN(+val2)) {
-          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+          err2 = err2.concat(error("MUL second argument must be a number: ", JSON.stringify(node, null, 2)));
         }
         const err = [].concat(err1).concat(err2);
         const val = +val1 * +val2;
