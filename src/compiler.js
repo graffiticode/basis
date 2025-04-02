@@ -1,5 +1,6 @@
 /* Copyright (c) 2021, ARTCOMPILER INC */
 import {assert, message, messages, reserveCodeRange} from "./share.js";
+import Decimal from 'decimal.js';
 reserveCodeRange(1000, 1999, "compile");
 messages[1001] = "Node ID %1 not found in pool.";
 messages[1002] = "Invalid tag in node with Node ID %1.";
@@ -308,6 +309,35 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
+  RANGE(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        this.visit(node.elts[2], options, (err3, val3) => {
+          const err = [].concat(err1).concat(err2).concat(err3);
+          const val = node;
+          resume(err, val);
+        });
+      });
+    });
+  }
+  EQ(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  MOD(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -556,8 +586,12 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [].concat(e0).concat(e1);
-        const val = +v0 + +v1;
-        resume(err, val);
+        try {
+          const val = new Decimal(v0).plus(new Decimal(v1)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in ADD operation: ${e.message}`], NaN);
+        }
       });
     });
   }
@@ -565,8 +599,12 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [].concat(e0).concat(e1);
-        const val = +v0 - +v1;
-        resume(err, val);
+        try {
+          const val = new Decimal(v0).minus(new Decimal(v1)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in SUB operation: ${e.message}`], NaN);
+        }
       });
     });
   }
@@ -574,8 +612,12 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [].concat(e0).concat(e1);
-        const val = +v0 < +v1;
-        resume(err, val);
+        try {
+          const val = new Decimal(v0).lessThan(new Decimal(v1));
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in LT operation: ${e.message}`], false);
+        }
       });
     });
   }
@@ -623,30 +665,57 @@ export class Transformer extends Visitor {
   MUL(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        if (isNaN(+val1)) {
-          err1 = err1.concat(error("MUL first argument must be a number: ", JSON.stringify(node, null, 2)));
+        let err = [].concat(err1).concat(err2);
+        try {
+          const val = new Decimal(val1).times(new Decimal(val2)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          if (isNaN(+val1)) {
+            err = err.concat(error("MUL first argument must be a number: ", JSON.stringify(node, null, 2)));
+          }
+          if (isNaN(+val2)) {
+            err = err.concat(error("MUL second argument must be a number: ", JSON.stringify(node, null, 2)));
+          }
+          resume([...err, `Error in MUL operation: ${e.message}`], NaN);
         }
-        if (isNaN(+val2)) {
-          err2 = err2.concat(error("MUL second argument must be a number: ", JSON.stringify(node, null, 2)));
-        }
-        const err = [].concat(err1).concat(err2);
-        const val = +val1 * +val2;
-        resume(err, val);
       });
     });
   }
   POW(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        if (isNaN(+val1)) {
-          err1 = err1.concat(error("Argument must be a number.", node.elts[0]));
+        let err = [].concat(err1).concat(err2);
+        try {
+          const val = new Decimal(val1).pow(new Decimal(val2)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          if (isNaN(+val1)) {
+            err = err.concat(error("POW first argument must be a number: ", JSON.stringify(node, null, 2)));
+          }
+          if (isNaN(+val2)) {
+            err = err.concat(error("POW second argument must be a number: ", JSON.stringify(node, null, 2)));
+          }
+          resume([...err, `Error in POW operation: ${e.message}`], NaN);
         }
-        if (isNaN(+val2)) {
-          err2 = err2.concat(error("Argument must be a number.", node.elts[1]));
+      });
+    });
+  }
+  MOD(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        let err = [].concat(err1).concat(err2);
+        try {
+          const val = new Decimal(val1).mod(new Decimal(val2)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          if (isNaN(+val1)) {
+            err = err.concat(error("MOD first argument must be a number: ", JSON.stringify(node, null, 2)));
+          }
+          if (isNaN(+val2)) {
+            err = err.concat(error("MOD second argument must be a number: ", JSON.stringify(node, null, 2)));
+          }
+          resume([...err, `Error in MOD operation: ${e.message}`], NaN);
         }
-        const err = [].concat(err1).concat(err2);
-        const val = node;
-        resume(err, val);
       });
     });
   }
@@ -883,6 +952,57 @@ export class Transformer extends Visitor {
       };
       resume(err, val);
     })
+  }
+  EQ(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = new Decimal(v0).equals(new Decimal(v1));
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in EQ operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  RANGE(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        this.visit(node.elts[2], options, (e2, v2) => {
+          const err = [].concat(e0).concat(e1).concat(e2);
+          try {
+            const start = new Decimal(v0);
+            const end = new Decimal(v1);
+            const step = new Decimal(v2);
+            
+            if (step.isZero()) {
+              resume([...err, 'Error in RANGE operation: step cannot be zero'], []);
+              return;
+            }
+            
+            const result = [];
+            let current = start;
+            
+            if (step.isPositive()) {
+              while (current.lessThan(end)) {
+                result.push(current.toNumber());
+                current = current.plus(step);
+              }
+            } else {
+              while (current.greaterThan(end)) {
+                result.push(current.toNumber());
+                current = current.plus(step);
+              }
+            }
+            
+            resume(err, result);
+          } catch (e) {
+            resume([...err, `Error in RANGE operation: ${e.message}`], []);
+          }
+        });
+      });
+    });
   }
 }
 
