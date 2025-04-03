@@ -186,6 +186,15 @@ export class Checker extends Visitor {
       });
     });
   }
+  GET(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
   LT(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
@@ -308,6 +317,42 @@ export class Checker extends Visitor {
     const err = [];
     const val = node;
     resume(err, val);
+  }
+  GT(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  GE(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  LE(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  NE(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
   }
   RANGE(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
@@ -849,13 +894,19 @@ export class Transformer extends Visitor {
     // FIXME this isn't ASYNC compatible
     options.SYNC = true;
     this.visit(node.elts[0], options, (e0, v0) => {
-      const e0Node = this.node(node.elts[0]);
+      const type = typeof v0;
+      const val = `${v0}`;
+      console.log(
+        "CASE",
+        "type=" + type,
+        "val=" + val,
+      );
       const expr = (
-        e0Node.tag === 'BOOL' ||
-          e0Node.tag === 'NUM'
-      ) && e0Node || {
-        tag: 'STR', elts: [`${v0}`]
-      };
+        val === null && {tag: "NUL", elts: []} ||
+        type === "boolean" && {tag: "BOOL", elts: [val]} ||
+        type === "number" && {tag: "NUM", elts: [val]} ||
+        {tag: "STR", elts: [val]}
+      );
       let foundMatch = false;
       const patterns = [];
       for (var i = 1; i < node.elts.length; i++) {
@@ -910,7 +961,7 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [...e0, ...e1];
-        assert(typeof v0 === "object", "Type Error: expected v0 to be an object.");
+        assert(typeof v0 === "object", "Type Error: expected v0 to be an object. Got " + JSON.stringify(v0));
         assert(typeof v1 === "string", "Type Error: expected v1 to be a string.");
         const val = v0[v1];
         resume(err, val);
@@ -962,6 +1013,58 @@ export class Transformer extends Visitor {
           resume(err, val);
         } catch (e) {
           resume([...err, `Error in EQ operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  GT(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = new Decimal(v0).greaterThan(new Decimal(v1));
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in GT operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  GE(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = new Decimal(v0).greaterThanOrEqualTo(new Decimal(v1));
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in GE operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  LE(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = new Decimal(v0).lessThanOrEqualTo(new Decimal(v1));
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in LE operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  NE(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = !new Decimal(v0).equals(new Decimal(v1));
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in NE operation: ${e.message}`], false);
         }
       });
     });
