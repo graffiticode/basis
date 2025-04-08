@@ -97,9 +97,24 @@ export class Checker extends Visitor {
       resume(err, data);
     });
   }
+  ERROR(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        this.visit(node.elts[2], options, (e2, v2) => {
+          const err = [{
+            message: v0,
+            from: v1,
+            to: v2
+          }];
+          const val = node;
+          resume(err, val);
+        });
+      });
+    });
+  }
   PROG(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
+      const err = [].concat(e0);
       const val = node;
       resume(err, val);
     });
@@ -122,13 +137,15 @@ export class Checker extends Visitor {
   }
   NUM(node, options, resume) {
     const err = [];
-    const val = node;
+    const val = +node.elts[0];
     resume(err, val);
   }
   LAMBDA(node, options, resume) {
     const err = [];
     const val = node;
     this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [].concat(e0);
+      const val = node;
       resume(err, val);
     });
   }
@@ -139,6 +156,8 @@ export class Checker extends Visitor {
       resume(err, val);
     } else {
       this.visit(node.elts[0], options, (e0, v0) => {
+        const err = [].concat(e0);
+        const val = node;
         resume(err, val);
       });
     }
@@ -150,7 +169,7 @@ export class Checker extends Visitor {
   }
   STR(node, options, resume) {
     const err = [];
-    const val = node;
+    const val = node.elts[0];
     resume(err, val);
   }
   JSON(node, options, resume) {
@@ -163,7 +182,7 @@ export class Checker extends Visitor {
   }
   CONCAT(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
+      const err = [].concat(e0);
       const val = node;
       resume(err, val);
     });
@@ -896,11 +915,6 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const type = typeof v0;
       const val = `${v0}`;
-      console.log(
-        "CASE",
-        "type=" + type,
-        "val=" + val,
-      );
       const expr = (
         val === null && {tag: "NUL", elts: []} ||
         type === "boolean" && {tag: "BOOL", elts: [val]} ||
@@ -1083,10 +1097,8 @@ export class Transformer extends Visitor {
               resume([...err, 'Error in RANGE operation: step cannot be zero'], []);
               return;
             }
-            
             const result = [];
             let current = start;
-            
             if (step.isPositive()) {
               while (current.lessThan(end)) {
                 result.push(current.toNumber());
@@ -1098,7 +1110,6 @@ export class Transformer extends Visitor {
                 current = current.plus(step);
               }
             }
-            
             resume(err, result);
           } catch (e) {
             resume([...err, `Error in RANGE operation: ${e.message}`], []);
@@ -1141,17 +1152,21 @@ export class Compiler {
       };
       const checker = new this.Checker(code);
       checker.check(options, (err, val) => {
-        const transformer = new this.Transformer(code);
-        transformer.transform(options, (err, val) => {
-          if (err && err.length) {
-            resume(err, val);
-          } else {
-            const renderer = new this.Renderer(val);
-            renderer.render(options, (err, val) => {
+        if (err.length > 0) {
+          resume(err);
+        } else {
+          const transformer = new this.Transformer(code);
+          transformer.transform(options, (err, val) => {
+            if (err && err.length) {
               resume(err, val);
-            });
-          }
-        });
+            } else {
+              const renderer = new this.Renderer(val);
+              renderer.render(options, (err, val) => {
+                resume(err, val);
+              });
+            }
+          });
+        }
       });
     } catch (x) {
       console.log("ERROR with code");
