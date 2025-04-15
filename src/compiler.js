@@ -97,6 +97,11 @@ export class Checker extends Visitor {
       resume(err, data);
     });
   }
+  CATCH_ALL(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
   ERROR(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
@@ -536,7 +541,11 @@ export class Transformer extends Visitor {
     // }
     return matches;
   }
-
+  CATCH_ALL(node, options, resume) {
+    const err = [];
+    const val = node;  // Use the node as the tag value.
+    resume(err, val);
+  }
   PROG(node, options, resume) {
     if (!options) {
       options = {};
@@ -842,6 +851,10 @@ export class Transformer extends Visitor {
     this.visit(node.elts[1], options, (e1, v1) => {
       let err = [];
       let val = [];
+      console.log(
+        "MAP()",
+        "v1=" + JSON.stringify(v1),
+      );
       v1.forEach(args => {
         options.args = args;
         options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
@@ -916,7 +929,8 @@ export class Transformer extends Visitor {
       const type = typeof v0;
       const val = `${v0}`;
       const expr = (
-        val === null && {tag: "NUL", elts: []} ||
+        v0 === null && {tag: "NUL", elts: []} ||
+        v0.tag !== undefined && v0 ||   // We've got a tag value.
         type === "boolean" && {tag: "BOOL", elts: [val]} ||
         type === "number" && {tag: "NUM", elts: [val]} ||
         {tag: "STR", elts: [val]}
