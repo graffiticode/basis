@@ -5,7 +5,9 @@
   "description": "The basis library for creating Graffiticode languages",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build-spec": "npx spec-md ./spec/spec.md > ./spec/spec.html",
+    "watch-spec": "npx nodemon --exec 'npx spec-md > ./spec/spec.html' ./spec/spec.md"
   },
   "engines": {
     "node": "22.x"
