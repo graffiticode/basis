@@ -503,7 +503,7 @@ export class Transformer extends Visitor {
       }
       const patternNid = this.internPattern(pattern);
       if (patternNid === this.internPattern(node) ||
-          patternNid === this.internPattern(newNode('IDENT', ['_']))) {
+          patternNid === this.internPattern(newNode('_', []))) {
         return true;
       }
       if (pattern.tag === node.tag) {
