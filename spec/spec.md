@@ -23,8 +23,8 @@ This document defines the **Graffiticode Core Language Specification**, covering
 
 A **Graffiticode program** is a sequence of one or more `let` declarations, followed by a single top-level expression, and terminated with `..`.
 
-```gc
-let double = <x: mul 2 x>
+```
+let double = <x: mul 2 x>..
 map (double) [1 2 3]..
 ```
 
@@ -32,74 +32,46 @@ The top-level expression must always be followed by `..`.
 
 ## Expressions
 
-### Tag Values
-
-A **tag value** is an arity-0 symbolic value that can be used in pattern matching or to encode variant types.
-
-```gc
-red
-```
-
-Tag values:
-
-- Are unbound identifiers that appear in expression position.
-- May optionally be introduced via implicit enum definitions.
-- Match directly in `case` expressions:
-
-```gc
-case color of
-  red: "warm"
-  blue: "cool"
-  _: "other"
-end
-```
-
-Tags are resolved as special constants with symbolic identity. They are case-sensitive and may be compared for equality using regular pattern match semantics.
-
 ### Function Application
 
 Function application is written in prefix style:
-```gc
+```
 add 1 2
 ```
-Parentheses control grouping:
-```gc
+
+Parentheses are used to defer application:
+```
 map (double) [1 2 3]
 ```
 
 ### Lists
-```gc
+```
 [1 2 3]
 ```
 
 ### Records
-```gc
+```
 { name: "Alice", age: 30 }
 ```
 
-### Tuples
-```gc
-(1, 2)
-```
-
 ### Lambdas
-```gc
+```
 <x: add x 1>
 ```
 Multiple parameters:
-```gc
+```
 <x y: add x y>
 ```
 
 ### Let Bindings
-```gc
+```
 let double = <x: mul 2 x>..
 ```
 
 ## Pattern Matching
 
 Pattern matching is done using `case`:
-```gc
+```
 case x of
   0: "zero"
   1: "one"
@@ -114,6 +86,30 @@ Supports:
 - Wildcard `_`
 
 Pattern matching on function arguments is disallowed.
+
+### Tag Values
+
+A **tag value** is an arity-0 symbolic value that can be used in pattern matching or to encode variant types.
+
+```
+red
+```
+
+Tag values:
+
+- Are unbound identifiers that appear in expression position.
+- May optionally be introduced via implicit enum definitions.
+- Match directly in `case` expressions:
+
+```
+case color of
+  red: "warm"
+  blue: "cool"
+  _: "other"
+end
+```
+
+Tags are resolved as special constants with symbolic identity. They are case-sensitive and may be compared for equality using regular pattern match semantics.
 
 # Semantics
 
@@ -154,12 +150,14 @@ Pattern matching on function arguments is disallowed.
 ## Built-in Functions
 
 | Function | Signature | Description |
-|----------|-----------|-------------|
+| :------- | :-------- | :---------- |
 | `add` | `<number number: number>` | Adds two numbers |
 | `sub` | `<number number: number>` | Subtracts numbers |
 | `mul` | `<number number: number>` | Multiplies numbers |
 | `div` | `<number number: number>` | Divides numbers |
 | `mod` | `<number number: number>` | Remainder of division |
+| `min` | `<number number: number>` | Returns the smaller of two numbers |
+| `max` | `<number number: number>` | Returns the larger of two numbers |
 | `range` | `<number number number: list>` | Generates a range list |
 | `map` | `<function list: list>` | Applies function to each item |
 | `filter` | `<function list: list>` | Keeps items matching predicate |
@@ -172,128 +170,158 @@ Pattern matching on function arguments is disallowed.
 | `get` | `<record string: any>` | Retrieves a value from a record by key |
 | `set` | `<record string any: record>` | Returns a new record with a key set to a value |
 
-# Built-in Function Details
+### add
 
-### `add`
-**Signature:** `<number number: number>`  
-**Description:** Adds two numbers.
-```gc
+Add two numbers.
+
+```
 add 2 3  | returns 5
 ```
 
-### `sub`
-**Signature:** `<number number: number>`  
-**Description:** Subtracts the second number from the first.
-```gc
+### sub
+
+Subtract the second number from the first
+
+```
 sub 5 2  | returns 3
 ```
 
-### `mul`
-**Signature:** `<number number: number>`  
-**Description:** Multiplies two numbers.
-```gc
+### mul
+
+Multiply two numbers
+
+```
 mul 4 3  | returns 12
 ```
 
-### `div`
-**Signature:** `<number number: number>`  
-**Description:** Divides the first number by the second.
-```gc
+### div
+
+Divide the first number by the second
+
+```
 div 10 2  | returns 5
 ```
 
-### `mod`
-**Signature:** `<number number: number>`  
-**Description:** Computes the remainder.
-```gc
+### mod
+
+Compute the remainder
+
+```
 mod 10 3  | returns 1
 ```
 
-### `range`
-**Signature:** `<number number number: list>`  
-**Description:** Produces a range list from start to end (exclusive) with step.
-```gc
+### min
+
+Return the smaller of two numbers
+
+```
+min 5 10  | returns 5
+```
+
+### max
+
+Return the larger of two numbers
+
+```
+max 5 10  | returns 10
+```
+
+### range
+
+Produce a range list from start to end (exclusive) with step
+
+```
 range 1 10 2  | returns [1 3 5 7 9]
 ```
 
-### `map`
-**Signature:** `<function list: list>`  
-**Description:** Applies a function to each element.
-```gc
+### map
+
+Apply a function to each element
+
+```
 map (<x: add x 1>) [1 2 3]  | returns [2 3 4]
 ```
 
-### `filter`
-**Signature:** `<function list: list>`  
-**Description:** Filters elements matching predicate.
-```gc
+### filter
+
+Filter elements matching predicate
+
+```
 filter (<x: mod x 2>) [1 2 3 4]  | returns [1 3]
 ```
 
-### `reduce`
-**Signature:** `<function any list: any>`  
-**Description:** Reduces a list to a single value, starting with an initial value.
-```gc
+### reduce
+
+Reduce a list to a single value, starting with an initial value
+
+```
 reduce (<a b: add a b>) 0 [1 2 3 4]  | returns 10
 ```
 
-### `hd`
-**Signature:** `<list: any>`  
-**Description:** Returns the first item.
-```gc
+### hd
+
+Return the first item
+
+```
 hd [10 20 30]  | returns 10
 ```
 
-### `tl`
-**Signature:** `<list: list>`  
-**Description:** Returns all but the first item.
-```gc
+### tl
+
+Return all but the first item
+
+```
 tl [10 20 30]  | returns [20 30]
 ```
 
-### `nth`
-**Signature:** `<number list: any>`  
-**Description:** Gets nth item (0-based).
-```gc
+### nth
+
+Get the nth item (0-based)
+
+```
 nth 1 [10 20 30]  | returns 20
 ```
 
-### `apply`
-**Signature:** `<function list: any>`  
-**Description:** Applies a function to argument list.
-```gc
+### apply
+
+Apply a function to an argument list
+
+```
 apply add [1 2]  | returns 3
 ```
 
-### `isEmpty`
-**Signature:** `<list: bool>`  
-**Description:** Returns true if list is empty.
-```gc
+### isEmpty
+
+Return true if list is empty, otherwise return false
+
+```
 isEmpty []  | returns true
 ```
 
-### `get`
-**Signature:** `<record string: any>`  
-**Description:** Retrieves a record field.
-```gc
+### get
+
+Retrieve a record field
+
+```
 get {a: 1, b: 2} "b"  | returns 2
 ```
 
-### `set`
-**Signature:** `<record string any: record>`  
-**Description:** Returns a new record with an updated field.
-```gc
+### set
+
+Return a new record with an updated field
+
+```
 set {a: 1} "a" 2  | returns {a: 2}
 ```
 
-# Examples
+# Program Examples
 
-```gc
-let double = <x: mul 2 x>
+```
+let double = <x: mul 2 x>..
 map (double) [1 2 3]..
 ```
 
-```gc
+```
 case age of
   18: "adult"
   _: "other"

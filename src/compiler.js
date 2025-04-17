@@ -407,6 +407,24 @@ export class Checker extends Visitor {
       });
     });
   }
+  MIN(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  MAX(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -1093,6 +1111,32 @@ export class Transformer extends Visitor {
           resume(err, val);
         } catch (e) {
           resume([...err, `Error in NE operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  MIN(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = Decimal.min(new Decimal(v0), new Decimal(v1)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in MIN operation: ${e.message}`], NaN);
+        }
+      });
+    });
+  }
+  MAX(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = Decimal.max(new Decimal(v0), new Decimal(v1)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in MAX operation: ${e.message}`], NaN);
         }
       });
     });
