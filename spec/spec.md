@@ -119,6 +119,14 @@ Tags are resolved as special constants with symbolic identity. They are case-sen
 - **Strict evaluation**: arguments evaluated before function application
 - **Immutable data**: all values are immutable
 
+Many built-in functions in Graffiticode follow a model-threading pattern. In this pattern, functions are defined to take one or more arguments followed by a model, which represents the current state of the program or view. The function uses the earlier arguments to compute an update to the model and returns a new model as its result.
+
+This style enables a declarative and order-independent composition of functions. Since each function call returns a new model, multiple calls can be reordered without changing the final result, provided the functional dependencies are preserved.
+
+This approach draws inspiration from **Model-View-Update** (MVU) architectures, in which the model represents the application state and functions describe pure, deterministic transformations of that state.
+
+
+
 ## Functions
 
 - **Fixed arity**: every function has a known number of parameters
@@ -167,8 +175,8 @@ Tags are resolved as special constants with symbolic identity. They are case-sen
 | `nth` | `<number list: any>` | Nth element of list |
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
 | `isEmpty` | `<list: bool>` | Returns true if the list is empty |
-| `get` | `<record string: any>` | Retrieves a value from a record by key |
-| `set` | `<record string any: record>` | Returns a new record with a key set to a value |
+| `get` | `<string record: any>` | Retrieves a value from a record by key |
+| `set` | `<string any record: record>` | Returns a new record with a key set to a value |
 
 ### add
 
@@ -303,7 +311,7 @@ isEmpty []  | returns true
 Retrieve a record field
 
 ```
-get {a: 1, b: 2} "b"  | returns 2
+get "b" {a: 1, b: 2}  | returns 2
 ```
 
 ### set
@@ -311,7 +319,7 @@ get {a: 1, b: 2} "b"  | returns 2
 Return a new record with an updated field
 
 ```
-set {a: 1} "a" 2  | returns {a: 2}
+set "a" 2 {a: 1}  | returns {a: 2}
 ```
 
 # Program Examples

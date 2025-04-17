@@ -7,7 +7,8 @@
   "scripts": {
     "test": "jest",
     "build-spec": "npx spec-md ./spec/spec.md > ./spec/spec.html",
-    "watch-spec": "npx nodemon --exec 'npx spec-md > ./spec/spec.html' ./spec/spec.md"
+    "watch-spec": "npx nodemon --exec 'npx spec-md > ./spec/spec.html' ./spec/spec.md",
+    "publish-spec": "npm run build-spec && for dir in ../l0*/packages/api/public; do cp ./spec/spec.html \"$dir/graffiticode-language-spec.html\"; echo \"Copied to $dir/graffiticode-language-spec.html\"; done"
   },
   "engines": {
     "node": "22.x"

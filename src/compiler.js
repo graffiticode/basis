@@ -1007,9 +1007,9 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [...e0, ...e1];
-        assert(typeof v0 === "object", "Type Error: expected v0 to be an object. Got " + JSON.stringify(v0));
-        assert(typeof v1 === "string", "Type Error: expected v1 to be a string.");
-        const val = v0[v1];
+        assert(typeof v0 === "string", "Type Error: expected v0 to be a string.");
+        assert(typeof v1 === "object", "Type Error: expected v1 to be an object. Got " + JSON.stringify(v1));
+        const val = v1[v0];
         resume(err, val);
       });
     });
@@ -1018,12 +1018,12 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         this.visit(node.elts[2], options, (e2, v2) => {
-          const err = [...e0, ...e1];
-          assert(typeof v0 === "object", "Type Error: expected v0 to be an object.");
-          assert(typeof v1 === "string", "Type Error: expected v1 to be a string.");
+          const err = [...e0, ...e1, ...e2];
+          assert(typeof v0 === "string", "Type Error: expected v0 to be a string.");
+          assert(typeof v2 === "object", "Type Error: expected v2 to be an object.");
           const val = {
-            ...v0,
-            [v1]: v2,
+            ...v2,
+            [v0]: v1,
           };
           resume(err, val);
         });

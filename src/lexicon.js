@@ -11,14 +11,16 @@ export const lexicon = {
     "name": "GET",
     "cls": "function",
     "length": 2,
-    "arity": 2
+    "arity": 2,
+    "args": ["key", "record"]
   },
   "set" : {
     "tk": 1,
     "name": "SET",
     "cls": "function",
     "length": 3,
-    "arity": 3
+    "arity": 3,
+    "args": ["key", "value", "record"]
   },
   "nth" : {
     "tk": 1,
