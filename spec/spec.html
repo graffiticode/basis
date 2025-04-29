@@ -64,6 +64,10 @@
 <li><a href="#sec-isEmpty"><span class="spec-secid">5.2.16</span>isEmpty</a></li>
 <li><a href="#sec-get"><span class="spec-secid">5.2.17</span>get</a></li>
 <li><a href="#sec-set"><span class="spec-secid">5.2.18</span>set</a></li>
+<li><a href="#sec-not"><span class="spec-secid">5.2.19</span>not</a></li>
+<li><a href="#sec-equiv"><span class="spec-secid">5.2.20</span>equiv</a></li>
+<li><a href="#sec-or"><span class="spec-secid">5.2.21</span>or</a></li>
+<li><a href="#sec-and"><span class="spec-secid">5.2.22</span>and</a></li>
 </ol>
 </li>
 </ol>
@@ -278,8 +282,8 @@ end
 </tr>
 <tr>
 <td align="left"><code>reduce</code></td>
-<td align="left"><code>&lt;function list: any&gt;</code></td>
-<td align="left">Combines list using a reducer</td>
+<td align="left"><code>&lt;function any list: any&gt;</code></td>
+<td align="left">Combines list using a reducer with initial value</td>
 </tr>
 <tr>
 <td align="left"><code>hd</code></td>
@@ -315,6 +319,26 @@ end
 <td align="left"><code>set</code></td>
 <td align="left"><code>&lt;string any record: record&gt;</code></td>
 <td align="left">Returns a new record with a key set to a value</td>
+</tr>
+<tr>
+<td align="left"><code>not</code></td>
+<td align="left"><code>&lt;bool: bool&gt;</code></td>
+<td align="left">Logical NOT operation, inverts a boolean value</td>
+</tr>
+<tr>
+<td align="left"><code>equiv</code></td>
+<td align="left"><code>&lt;any any: bool&gt;</code></td>
+<td align="left">Tests if two values are strictly equivalent</td>
+</tr>
+<tr>
+<td align="left"><code>or</code></td>
+<td align="left"><code>&lt;bool bool: bool&gt;</code></td>
+<td align="left">Logical OR operation</td>
+</tr>
+<tr>
+<td align="left"><code>and</code></td>
+<td align="left"><code>&lt;bool bool: bool&gt;</code></td>
+<td align="left">Logical AND operation</td>
 </tr>
 </tbody>
 </table>
@@ -426,6 +450,41 @@ end
 <pre><code>set "a" 2 {a: 1}  | returns {a: 2}
 </code></pre>
 </section>
+<section id="sec-not" secid="5.2.19">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-not">5.2.19</a></span>not</h3>
+<p>Logical NOT that inverts a boolean value</p>
+<pre><code>not true   | returns false
+not false  | returns true
+</code></pre>
+</section>
+<section id="sec-equiv" secid="5.2.20">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-equiv">5.2.20</a></span>equiv</h3>
+<p>Tests if two values are strictly equivalent</p>
+<pre><code>equiv 1 1        | returns true
+equiv "a" "a"    | returns true
+equiv true true  | returns true
+equiv 1 2        | returns false
+equiv "a" "b"    | returns false
+</code></pre>
+</section>
+<section id="sec-or" secid="5.2.21">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-or">5.2.21</a></span>or</h3>
+<p>Logical OR operation</p>
+<pre><code>or false false  | returns false
+or false true   | returns true
+or true false   | returns true
+or true true    | returns true
+</code></pre>
+</section>
+<section id="sec-and" secid="5.2.22">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-and">5.2.22</a></span>and</h3>
+<p>Logical AND operation</p>
+<pre><code>and false false  | returns false
+and false true   | returns false
+and true false   | returns false
+and true true    | returns true
+</code></pre>
+</section>
 </section>
 </section>
 <section id="sec-Program-Examples" secid="6">
@@ -518,6 +577,10 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_5.2.16"><a href="#sec-isEmpty"><span class="spec-secid">5.2.16</span>isEmpty</a></li>
 <li id="_sidebar_5.2.17"><a href="#sec-get"><span class="spec-secid">5.2.17</span>get</a></li>
 <li id="_sidebar_5.2.18"><a href="#sec-set"><span class="spec-secid">5.2.18</span>set</a></li>
+<li id="_sidebar_5.2.19"><a href="#sec-not"><span class="spec-secid">5.2.19</span>not</a></li>
+<li id="_sidebar_5.2.20"><a href="#sec-equiv"><span class="spec-secid">5.2.20</span>equiv</a></li>
+<li id="_sidebar_5.2.21"><a href="#sec-or"><span class="spec-secid">5.2.21</span>or</a></li>
+<li id="_sidebar_5.2.22"><a href="#sec-and"><span class="spec-secid">5.2.22</span>and</a></li>
 </ol>
 </li>
 </ol>

@@ -12,7 +12,6 @@ export const lexicon = {
     "cls": "function",
     "length": 2,
     "arity": 2,
-    "args": ["key", "record"]
   },
   "set" : {
     "tk": 1,
@@ -20,7 +19,6 @@ export const lexicon = {
     "cls": "function",
     "length": 3,
     "arity": 3,
-    "args": ["key", "value", "record"]
   },
   "nth" : {
     "tk": 1,

@@ -169,7 +169,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `range` | `<number number number: list>` | Generates a range list |
 | `map` | `<function list: list>` | Applies function to each item |
 | `filter` | `<function list: list>` | Keeps items matching predicate |
-| `reduce` | `<function list: any>` | Combines list using a reducer |
+| `reduce` | `<function any list: any>` | Combines list using a reducer with initial value |
 | `hd` | `<list: any>` | First item of list |
 | `tl` | `<list: list>` | All items except first |
 | `nth` | `<number list: any>` | Nth element of list |
@@ -177,6 +177,10 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `isEmpty` | `<list: bool>` | Returns true if the list is empty |
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
 | `set` | `<string any record: record>` | Returns a new record with a key set to a value |
+| `not` | `<bool: bool>` | Logical NOT operation, inverts a boolean value |
+| `equiv` | `<any any: bool>` | Tests if two values are strictly equivalent |
+| `or` | `<bool bool: bool>` | Logical OR operation |
+| `and` | `<bool bool: bool>` | Logical AND operation |
 
 ### add
 
@@ -320,6 +324,49 @@ Return a new record with an updated field
 
 ```
 set "a" 2 {a: 1}  | returns {a: 2}
+```
+
+### not
+
+Logical NOT that inverts a boolean value
+
+```
+not true   | returns false
+not false  | returns true
+```
+
+### equiv
+
+Tests if two values are strictly equivalent
+
+```
+equiv 1 1        | returns true
+equiv "a" "a"    | returns true
+equiv true true  | returns true
+equiv 1 2        | returns false
+equiv "a" "b"    | returns false
+```
+
+### or
+
+Logical OR operation
+
+```
+or false false  | returns false
+or false true   | returns true
+or true false   | returns true
+or true true    | returns true
+```
+
+### and
+
+Logical AND operation
+
+```
+and false false  | returns false
+and false true   | returns false
+and true false   | returns false
+and true true    | returns true
 ```
 
 # Program Examples
