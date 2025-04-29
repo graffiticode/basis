@@ -189,5 +189,33 @@ export const lexicon = {
     "cls": "function",
     "length": 3,
     "arity": 3
+  },
+  "not" : {
+    "tk": 1,
+    "name": "NOT",
+    "cls": "function",
+    "length": 1,
+    "arity": 1
+  },
+  "equiv" : {
+    "tk": 1,
+    "name": "EQUIV",
+    "cls": "function",
+    "length": 2,
+    "arity": 2
+  },
+  "or" : {
+    "tk": 1,
+    "name": "OR",
+    "cls": "function",
+    "length": 2,
+    "arity": 2
+  },
+  "and" : {
+    "tk": 1,
+    "name": "AND",
+    "cls": "function",
+    "length": 2,
+    "arity": 2
   }
 }

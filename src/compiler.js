@@ -27,7 +27,7 @@ class Visitor {
   }
   visit(nid, options, resume) {
     try {
-      assert(nid);
+      assert(nid, "Invalid nid=" + nid);
       let node;
       if (typeof nid === "object") {
         node = nid;
@@ -425,6 +425,62 @@ export class Checker extends Visitor {
       });
     });
   }
+  NOT(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      let err = [].concat(err1);
+      if (typeof val1 !== "boolean" && val1 !== null && val1 !== undefined && val1 !== 0 && val1 !== "" && val1 !== false) {
+        err.push(`NOT operation requires a boolean argument, got ${typeof val1}`);
+      }
+      const val = node;
+      resume(err, val);
+    });
+  }
+  EQUIV(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        let err = [].concat(err1).concat(err2);
+        const validTypes = ["boolean", "string", "number"];
+        if (!validTypes.includes(typeof val1) && val1 !== null) {
+          err.push(`EQUIV operation requires primitive arguments, got ${typeof val1} for first argument`);
+        }
+        if (!validTypes.includes(typeof val2) && val2 !== null) {
+          err.push(`EQUIV operation requires primitive arguments, got ${typeof val2} for second argument`);
+        }
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  OR(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        let err = [].concat(err1).concat(err2);
+        if (typeof val1 !== "boolean" && val1 !== null && val1 !== undefined && val1 !== 0 && val1 !== "" && val1 !== false) {
+          err.push(`OR operation requires boolean arguments, got ${typeof val1} for first argument`);
+        }
+        if (typeof val2 !== "boolean" && val2 !== null && val2 !== undefined && val2 !== 0 && val2 !== "" && val2 !== false) {
+          err.push(`OR operation requires boolean arguments, got ${typeof val2} for second argument`);
+        }
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  AND(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        let err = [].concat(err1).concat(err2);
+        if (typeof val1 !== "boolean" && val1 !== null && val1 !== undefined && val1 !== 0 && val1 !== "" && val1 !== false) {
+          err.push(`AND operation requires boolean arguments, got ${typeof val1} for first argument`);
+        }
+        if (typeof val2 !== "boolean" && val2 !== null && val2 !== undefined && val2 !== 0 && val2 !== "" && val2 !== false) {
+          err.push(`AND operation requires boolean arguments, got ${typeof val2} for second argument`);
+        }
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -724,7 +780,6 @@ export class Transformer extends Visitor {
   }
   BINDING(node, options, resume) {
     const err = [];
-    const val = node;
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
         resume([].concat(err1).concat(err2), {key: val1, val: val2});
@@ -825,9 +880,11 @@ export class Transformer extends Visitor {
     resume(err, val);
   }
   LEN(node, options, resume) {
-    const err = [];
-    const val = node;
-    resume(err, val);
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = e0;
+      const val = Array.isArray(v0) && v0.length;
+      resume(err, val);
+    });
   }
   ARG(node, options, resume) {
     const err = [];
@@ -869,11 +926,8 @@ export class Transformer extends Visitor {
     this.visit(node.elts[1], options, (e1, v1) => {
       let err = [];
       let val = [];
-      console.log(
-        "MAP()",
-        "v1=" + JSON.stringify(v1),
-      );
       v1.forEach(args => {
+        options.SYNC = true;
         options.args = args;
         options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
         this.visit(node.elts[0], options, (e0, v0) => {
@@ -921,6 +975,7 @@ export class Transformer extends Visitor {
         let err = [];
         let val = v1;
         v2.forEach((args, index) => {
+          options.SYNC = true;
           options.args = [val, args];
           options = JSON.parse(JSON.stringify(options));  // Copy option arg support async.
           this.visit(node.elts[0], options, (e0, v0) => {
@@ -1150,7 +1205,6 @@ export class Transformer extends Visitor {
             const start = new Decimal(v0);
             const end = new Decimal(v1);
             const step = new Decimal(v2);
-            
             if (step.isZero()) {
               resume([...err, 'Error in RANGE operation: step cannot be zero'], []);
               return;
@@ -1173,6 +1227,75 @@ export class Transformer extends Visitor {
             resume([...err, `Error in RANGE operation: ${e.message}`], []);
           }
         });
+      });
+    });
+  }
+  NOT(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [].concat(e0);
+      try {
+        // Handle various falsy values explicitly
+        if (v0 === null || v0 === undefined || v0 === 0 || v0 === "" || v0 === false) {
+          resume(err, true);
+        } else {
+          resume(err, !v0);
+        }
+      } catch (e) {
+        resume([...err, `Error in NOT operation: ${e.message}`], false);
+      }
+    });
+  }
+  EQUIV(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          // Use strict equality for primitive comparison
+          const val = v0 === v1;
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in EQUIV operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  OR(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      // Short-circuit evaluation - if first argument is truthy, return true immediately
+      if (v0) {
+        resume(e0, true);
+        return;
+      }
+
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          // Standard boolean OR operation
+          const val = Boolean(v0) || Boolean(v1);
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in OR operation: ${e.message}`], false);
+        }
+      });
+    });
+  }
+  AND(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      // Short-circuit evaluation - if first argument is falsy, return false immediately
+      if (!v0) {
+        resume(e0, false);
+        return;
+      }
+
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          // Standard boolean AND operation
+          const val = Boolean(v0) && Boolean(v1);
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in AND operation: ${e.message}`], false);
+        }
       });
     });
   }
