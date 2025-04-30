@@ -481,6 +481,30 @@ export class Checker extends Visitor {
       });
     });
   }
+  HD(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      let err = [].concat(err1);
+      // if (!Array.isArray(val1)) {
+      //   err.push(`HD operation requires a list argument, got ${typeof val1}`);
+      // } else if (val1.length === 0) {
+      //   err.push(`HD operation called on an empty list`);
+      // }
+      const val = node;
+      resume(err, val);
+    });
+  }
+  TL(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      let err = [].concat(err1);
+      // if (!Array.isArray(val1)) {
+      //   err.push(`TL operation requires a list argument, got ${typeof val1}`);
+      // } else if (val1.length === 0) {
+      //   err.push(`TL operation called on an empty list`);
+      // }
+      const val = node;
+      resume(err, val);
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -1297,6 +1321,46 @@ export class Transformer extends Visitor {
           resume([...err, `Error in AND operation: ${e.message}`], false);
         }
       });
+    });
+  }
+  HD(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [].concat(e0);
+      try {
+        if (!Array.isArray(v0)) {
+          resume([...err, `Error in HD operation: expected an array, got ${typeof v0}`], null);
+          return;
+        }
+        if (v0.length === 0) {
+          resume([...err, `Error in HD operation: empty array has no head`], null);
+          return;
+        }
+        // Return the first element of the array
+        const val = v0[0];
+        resume(err, val);
+      } catch (e) {
+        resume([...err, `Error in HD operation: ${e.message}`], null);
+      }
+    });
+  }
+  TL(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [].concat(e0);
+      try {
+        if (!Array.isArray(v0)) {
+          resume([...err, `Error in TL operation: expected an array, got ${typeof v0}`], []);
+          return;
+        }
+        if (v0.length === 0) {
+          resume([...err, `Error in TL operation: empty array has no tail`], []);
+          return;
+        }
+        // Return all elements except the first
+        const val = v0.slice(1);
+        resume(err, val);
+      } catch (e) {
+        resume([...err, `Error in TL operation: ${e.message}`], []);
+      }
     });
   }
 }

@@ -215,5 +215,19 @@ export const lexicon = {
     "cls": "function",
     "length": 2,
     "arity": 2
+  },
+  "hd" : {
+    "tk": 1,
+    "name": "HD",
+    "cls": "function",
+    "length": 1,
+    "arity": 1
+  },
+  "tl" : {
+    "tk": 1,
+    "name": "TL",
+    "cls": "function",
+    "length": 1,
+    "arity": 1
   }
 }
