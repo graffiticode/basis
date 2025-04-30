@@ -1,5 +1,10 @@
 # Graffiticode Core Language Specification
 
+```
+Version: 0.1.0
+Date: 2025-04-30
+```
+
 # Introduction
 
 This document defines the **Graffiticode Core Language Specification**, covering syntax, semantics, and the base library. It excludes dialect-specific constructs, runtime behavior, and extended libraries.
@@ -160,27 +165,27 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | Function | Signature | Description |
 | :------- | :-------- | :---------- |
 | `add` | `<number number: number>` | Adds two numbers |
-| `sub` | `<number number: number>` | Subtracts numbers |
-| `mul` | `<number number: number>` | Multiplies numbers |
-| `div` | `<number number: number>` | Divides numbers |
-| `mod` | `<number number: number>` | Remainder of division |
-| `min` | `<number number: number>` | Returns the smaller of two numbers |
-| `max` | `<number number: number>` | Returns the larger of two numbers |
-| `range` | `<number number number: list>` | Generates a range list |
-| `map` | `<function list: list>` | Applies function to each item |
-| `filter` | `<function list: list>` | Keeps items matching predicate |
-| `reduce` | `<function any list: any>` | Combines list using a reducer with initial value |
-| `hd` | `<list: any>` | First item of list |
-| `tl` | `<list: list>` | All items except first |
-| `nth` | `<number list: any>` | Nth element of list |
-| `apply` | `<function list: any>` | Applies a function to a list of arguments |
-| `isEmpty` | `<list: bool>` | Returns true if the list is empty |
-| `get` | `<string record: any>` | Retrieves a value from a record by key |
-| `set` | `<string any record: record>` | Returns a new record with a key set to a value |
-| `not` | `<bool: bool>` | Logical NOT operation, inverts a boolean value |
-| `equiv` | `<any any: bool>` | Tests if two values are strictly equivalent |
-| `or` | `<bool bool: bool>` | Logical OR operation |
 | `and` | `<bool bool: bool>` | Logical AND operation |
+| `apply` | `<function list: any>` | Applies a function to a list of arguments |
+| `div` | `<number number: number>` | Divides numbers |
+| `equiv` | `<any any: bool>` | Tests if two values are strictly equivalent |
+| `filter` | `<function list: list>` | Keeps items matching predicate |
+| `get` | `<string record: any>` | Retrieves a value from a record by key |
+| `hd` | `<list: any>` | First item of list |
+| `isEmpty` | `<list: bool>` | Returns true if the list is empty |
+| `map` | `<function list: list>` | Applies function to each item |
+| `max` | `<number number: number>` | Returns the larger of two numbers |
+| `min` | `<number number: number>` | Returns the smaller of two numbers |
+| `mod` | `<number number: number>` | Remainder of division |
+| `mul` | `<number number: number>` | Multiplies numbers |
+| `not` | `<bool: bool>` | Logical NOT operation, inverts a boolean value |
+| `nth` | `<number list: any>` | Nth element of list |
+| `or` | `<bool bool: bool>` | Logical OR operation |
+| `range` | `<number number number: list>` | Generates a range list |
+| `reduce` | `<function any list: any>` | Combines list using a reducer with initial value |
+| `set` | `<string any record: record>` | Returns a new record with a key set to a value |
+| `sub` | `<number number: number>` | Subtracts numbers |
+| `tl` | `<list: list>` | All items except first |
 
 ### add
 
@@ -190,108 +195,15 @@ Add two numbers.
 add 2 3  | returns 5
 ```
 
-### sub
+### and
 
-Subtract the second number from the first
-
-```
-sub 5 2  | returns 3
-```
-
-### mul
-
-Multiply two numbers
+Logical AND operation
 
 ```
-mul 4 3  | returns 12
-```
-
-### div
-
-Divide the first number by the second
-
-```
-div 10 2  | returns 5
-```
-
-### mod
-
-Compute the remainder
-
-```
-mod 10 3  | returns 1
-```
-
-### min
-
-Return the smaller of two numbers
-
-```
-min 5 10  | returns 5
-```
-
-### max
-
-Return the larger of two numbers
-
-```
-max 5 10  | returns 10
-```
-
-### range
-
-Produce a range list from start to end (exclusive) with step
-
-```
-range 1 10 2  | returns [1 3 5 7 9]
-```
-
-### map
-
-Apply a function to each element
-
-```
-map (<x: add x 1>) [1 2 3]  | returns [2 3 4]
-```
-
-### filter
-
-Filter elements matching predicate
-
-```
-filter (<x: mod x 2>) [1 2 3 4]  | returns [1 3]
-```
-
-### reduce
-
-Reduce a list to a single value, starting with an initial value
-
-```
-reduce (<a b: add a b>) 0 [1 2 3 4]  | returns 10
-```
-
-### hd
-
-Return the first item
-
-```
-hd [10 20 30]  | returns 10
-```
-
-### tl
-
-Return all but the first item
-
-```
-tl [10 20 30]  | returns [20 30]
-```
-
-### nth
-
-Get the nth item (0-based)
-
-```
-nth 1 [10 20 30]  | returns 20
+and false false  | returns false
+and false true   | returns false
+and true false   | returns false
+and true true    | returns true
 ```
 
 ### apply
@@ -302,37 +214,12 @@ Apply a function to an argument list
 apply add [1 2]  | returns 3
 ```
 
-### isEmpty
+### div
 
-Return true if list is empty, otherwise return false
-
-```
-isEmpty []  | returns true
-```
-
-### get
-
-Retrieve a record field
+Divide the first number by the second
 
 ```
-get "b" {a: 1, b: 2}  | returns 2
-```
-
-### set
-
-Return a new record with an updated field
-
-```
-set "a" 2 {a: 1}  | returns {a: 2}
-```
-
-### not
-
-Logical NOT that inverts a boolean value
-
-```
-not true   | returns false
-not false  | returns true
+div 10 2  | returns 5
 ```
 
 ### equiv
@@ -347,6 +234,95 @@ equiv 1 2        | returns false
 equiv "a" "b"    | returns false
 ```
 
+### filter
+
+Filter elements matching predicate
+
+```
+filter (<x: mod x 2>) [1 2 3 4]  | returns [1 3]
+```
+
+### get
+
+Retrieve a record field
+
+```
+get "b" {a: 1, b: 2}  | returns 2
+```
+
+### hd
+
+Return the first item
+
+```
+hd [10 20 30]  | returns 10
+```
+
+### isEmpty
+
+Return true if list is empty, otherwise return false
+
+```
+isEmpty []  | returns true
+```
+
+### map
+
+Apply a function to each element
+
+```
+map (<x: add x 1>) [1 2 3]  | returns [2 3 4]
+```
+
+### max
+
+Return the larger of two numbers
+
+```
+max 5 10  | returns 10
+```
+
+### min
+
+Return the smaller of two numbers
+
+```
+min 5 10  | returns 5
+```
+
+### mod
+
+Compute the remainder
+
+```
+mod 10 3  | returns 1
+```
+
+### mul
+
+Multiply two numbers
+
+```
+mul 4 3  | returns 12
+```
+
+### not
+
+Logical NOT that inverts a boolean value
+
+```
+not true   | returns false
+not false  | returns true
+```
+
+### nth
+
+Get the nth item (0-based)
+
+```
+nth 1 [10 20 30]  | returns 20
+```
+
 ### or
 
 Logical OR operation
@@ -358,15 +334,44 @@ or true false   | returns true
 or true true    | returns true
 ```
 
-### and
+### range
 
-Logical AND operation
+Produce a range list from start to end (exclusive) with step
 
 ```
-and false false  | returns false
-and false true   | returns false
-and true false   | returns false
-and true true    | returns true
+range 1 10 2  | returns [1 3 5 7 9]
+```
+
+### reduce
+
+Reduce a list to a single value, starting with an initial value
+
+```
+reduce (<a b: add a b>) 0 [1 2 3 4]  | returns 10
+```
+
+### set
+
+Return a new record with an updated field
+
+```
+set "a" 2 {a: 1}  | returns {a: 2}
+```
+
+### sub
+
+Subtract the second number from the first
+
+```
+sub 5 2  | returns 3
+```
+
+### tl
+
+Return all but the first item
+
+```
+tl [10 20 30]  | returns [20 30]
 ```
 
 # Program Examples
