@@ -38,6 +38,7 @@ class Visitor {
       //   "Visitor/visit()",
       //   "nodePool=" + JSON.stringify(this.nodePool, null, 2),
       //   "node.tag=" + node.tag,
+      //   "options=" + JSON.stringify(options, null, 2),
       // );
       const fn = (this[node.tag] || this["CATCH_ALL"])?.bind(this);
       assert(node && node.tag && node.elts, "2000: Visitor.visit() tag=" + node.tag + " elts= " + JSON.stringify(node.elts));
