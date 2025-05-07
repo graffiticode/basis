@@ -173,6 +173,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
 | `hd` | `<list: any>` | First item of list |
 | `isEmpty` | `<list: bool>` | Returns true if the list is empty |
+| `log` | `<any: any>` | Logs the value to console and returns it (identity function) |
 | `map` | `<function list: list>` | Applies function to each item |
 | `max` | `<number number: number>` | Returns the larger of two numbers |
 | `min` | `<number number: number>` | Returns the smaller of two numbers |
@@ -264,6 +265,15 @@ Return true if list is empty, otherwise return false
 
 ```
 isEmpty []  | returns true
+```
+
+### log
+
+Log a value to the console and return the value unchanged
+
+```
+log "Hello"  | prints "Hello" to console and returns "Hello"
+log (add 1 2)  | prints 3 to console and returns 3
 ```
 
 ### map

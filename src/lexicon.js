@@ -1,4 +1,4 @@
-export default {
+export const lexicon = {
   "print": {
     "tk": 1,
     "name": "PRINT",
@@ -270,5 +270,13 @@ export default {
     "length": 2,
     "arity": 2,
     "description": "Appends an element to the end of a list."
+  },
+  "log": {
+    "tk": 1,
+    "name": "LOG",
+    "cls": "function",
+    "length": 1,
+    "arity": 1,
+    "description": "Logs the value to the console and returns the value (identity function)."
   }
 };
