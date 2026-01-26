@@ -827,6 +827,10 @@ export class Transformer extends Visitor {
       const ndx = [];
       for (let elt of node.elts) {
         this.visit(elt, options, (e0, v0) => {
+          console.log(
+            "RECORD()",
+            "v0=" + JSON.stringify(v0, null, 2),
+          );
           err = err.concat(e0);
           ndx[elt] = v0;
           if (++len === node.elts.length) {

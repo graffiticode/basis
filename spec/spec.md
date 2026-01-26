@@ -1,8 +1,8 @@
 # Graffiticode Core Language Specification
 
 ```
-Version: 0.1.0
-Date: 2025-04-30
+Version: 0.1.1
+Date: 2025-07-07
 ```
 
 # Introduction
@@ -44,6 +44,8 @@ Function application is written in prefix style:
 add 1 2
 ```
 
+Functions have fixed arity, so applications can be parsed unambiguously without grouping syntax. For example, `add 1 mul 2 3` parses as `add(1, mul(2, 3))` because the parser knows `add` takes 2 arguments and `mul` takes 2 arguments.
+
 Parentheses are used to defer application:
 ```
 map (double) [1 2 3]
@@ -55,8 +57,51 @@ map (double) [1 2 3]
 ```
 
 ### Records
+
+Records may use **shorthand syntax** for fields where the value is a reference to a variable of the same name.
+
+```gc
+let foo = 10..
+{foo}         | equivalent to {foo: 10}
 ```
+
+This provides a concise way to construct records using in-scope variable names as field keys and values.
+
+You can also mix shorthand and explicit fields:
+
+```gc
+let x = 1..
+let y = 2..
+{x y z: 3}    | equivalent to {x: 1, y: 2, z: 3}
+```
+
+```gc
 { name: "Alice", age: 30 }
+```
+
+### Tags
+
+A **tag value** is an arity-0 symbolic value used to represent symbolic variants in pattern matching or other symbolic forms.
+
+Tag values are **only defined** by using record shorthand syntax. For example:
+
+```gc
+{red blue green}   | defines the tag values red, blue, and green
+```
+
+Tag values:
+
+- Must be introduced via record shorthand notation
+- Are resolved as symbolic constants with identity semantics
+- Match directly in `case` expressions:
+
+```
+let color = get "red" {red blue green}
+case color of
+  red: "warm"
+  blue: "cool"
+  _: "other"
+end
 ```
 
 ### Lambdas
@@ -76,6 +121,7 @@ let double = <x: mul 2 x>..
 ## Pattern Matching
 
 Pattern matching is done using `case`:
+
 ```
 case x of
   0: "zero"
@@ -92,29 +138,126 @@ Supports:
 
 Pattern matching on function arguments is disallowed.
 
-### Tag Values
+# Type System
 
-A **tag value** is an arity-0 symbolic value that can be used in pattern matching or to encode variant types.
+Graffiticode includes a implicit structural type system. Every expression has
+a statically inferred type, and type errors are detected at compile time.
+Explicit type annotations are not included in the grammar.
+
+## Primitive Types
+
+- `number` – Represents integers or floating-point numbers.
+- `string` – Represents UTF-8 strings.
+- `bool` – Represents Boolean values: `true` and `false`.
+- `json` – Represents any JSON-compatible value (opaque, untyped).
+- `any` – Used internally to denote an unconstrained type (e.g., during inference).
+
+## Composite Types
+
+- **Lists** – Written as `[T]` where `T` is any type.
+  ```
+  [string]       | list of strings
+  [number]       | list of numbers
+  [[bool]]       | list of lists of booleans
+  ```
+
+- **Records** – Key-value maps with known keys and types.
+  ```
+  { name: string, age: number }
+  ```
+  
+- **Tuples** – Ordered, fixed-length collections with heterogeneous types.
+  ```
+  (number, string, bool)
+  ```
+
+## Function Types
+
+Functions are written using Graffiticode lambda signature syntax:
+```
+<number number: number>   | function taking two numbers and returning a number
+<string: [string]>        | function taking a string and returning a list of strings
+<list record: record>     | common signature for structural transformation
+```
+
+Function types are curried by default. That means:
+```
+<number number: number>
+```
+is equivalent to a function that returns another function:
+```
+<number: <number: number>>
+```
+
+## Tag Sets and Tag Value Type
+
+Tag values are symbolic constants introduced using record shorthand syntax. They have a default type of `tag`, and their identity is preserved across bindings.
+
+### Tag Identity and Type
+
+Tag values are symbolic constants identified **solely by their name**. The same tag name (e.g., `A`) refers to the same symbolic value, regardless of where it is defined.
+
+Tag values compare equal by name. For example, `A` in `{A B}` and `A` in `{A C}` are equal.
+
+### Tag Sets as Structural Types
+
+Although tag values are globally identified by name, the **type system tracks which tags are expected to co-occur**.
+
+For example, `{A B}` and `{A C}` are different types:
 
 ```
-red
+{A B}    | type: { A: tag, B: tag }
+{A C}    | type: { A: tag, C: tag }
 ```
 
-Tag values:
+This allows the type system to constrain the expected context for pattern matching, record shapes, or enum-style uses of tags.
 
-- Are unbound identifiers that appear in expression position.
-- May optionally be introduced via implicit enum definitions.
-- Match directly in `case` expressions:
+Using tags not part of the expected set results in a type error.
+
+### Default Type: `tag`
+
+By default, a tag value has the type:
+
+```gc
+tag
+```
+
+When tags are introduced with:
 
 ```
-case color of
+{A B C}
+```
+
+the resulting type is:
+
+```
+{ A: tag, B: tag, C: tag }
+```
+
+This allows for composition and safe comparison.
+
+### Example
+
+```gc
+let colors = {red blue green}..
+case red of
   red: "warm"
   blue: "cool"
   _: "other"
 end
 ```
 
-Tags are resolved as special constants with symbolic identity. They are case-sensitive and may be compared for equality using regular pattern match semantics.
+In this case, `red`, `blue`, and `green` are all of type `tag`, and `case` matches by identity.
+
+## Example: Annotated Definitions
+
+```gc
+let inc = <x: add x 1>  | type: <number: number>
+let greet = <name: concat ["Hello, " name]>  | type: <string: string>
+let zip = <xs ys: zipLists xs ys>  | type: <[T] [U]: [(T, U)]>
+```
+
+(Note: actual Graffiticode does not use type annotations in `let` bindings; types are inferred.)
 
 # Semantics
 
