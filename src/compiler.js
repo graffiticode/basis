@@ -73,6 +73,7 @@ class Visitor {
     case "STR":
     case "IDENT":
     case "BOOL":
+    case "TAG":
       elts[0] = n.elts[0];
       break;
     default:
@@ -169,6 +170,11 @@ export class Checker extends Visitor {
     }
   }
   IDENT(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
+  TAG(node, options, resume) {
     const err = [];
     const val = node;
     resume(err, val);
@@ -609,7 +615,7 @@ export class Transformer extends Visitor {
       }
       const patternNid = this.internPattern(pattern);
       if (patternNid === this.internPattern(node) ||
-          patternNid === this.internPattern(newNode('_', []))) {
+          patternNid === this.internPattern(newNode('TAG', ['_']))) {
         return true;
       }
       if (pattern.tag === node.tag) {
@@ -648,8 +654,9 @@ export class Transformer extends Visitor {
     return matches;
   }
   CATCH_ALL(node, options, resume) {
+    // Fallback for unknown node types.
     const err = [];
-    const val = node;  // Use the node as the tag value.
+    const val = node;
     resume(err, val);
   }
   PROG(node, options, resume) {
@@ -740,6 +747,11 @@ export class Transformer extends Visitor {
     let word = findWord(options, node.elts[0]);
     const err = [];
     const val = word?.val !== undefined ? word.val : node.elts[0];
+    resume(err, val);
+  }
+  TAG(node, options, resume) {
+    const err = [];
+    const val = { tag: node.elts[0] };
     resume(err, val);
   }
   STR(node, options, resume) {
@@ -1039,7 +1051,8 @@ export class Transformer extends Visitor {
       const val = `${v0}`;
       const expr = (
         v0 === null && {tag: "NUL", elts: []} ||
-        v0.tag !== undefined && v0 ||   // We've got a tag value.
+        v0?.tag !== undefined && !v0.elts && {tag: "TAG", elts: [v0.tag]} ||
+        v0?.tag !== undefined && v0 ||   // Already an AST node.
         type === "boolean" && {tag: "BOOL", elts: [val]} ||
         type === "number" && {tag: "NUM", elts: [val]} ||
         {tag: "STR", elts: [val]}
