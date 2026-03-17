@@ -1,0 +1,6 @@
+{
+  "name": "@graffiticode/basis-spec",
+  "version": "0.1.2",
+  "description": "Graffiticode Core Language Specification",
+  "private": true
+}
