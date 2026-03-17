@@ -519,6 +519,13 @@ export class Checker extends Visitor {
       resume(err, val);
     });
   }
+  ISEMPTY(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      const err = [].concat(err1);
+      const val = node;
+      resume(err, val);
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -1392,12 +1399,24 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [].concat(e0);
       try {
-        // Log the value to the console
         console.log(`LOG: ${v0}`);
-        // Return the value unchanged (identity function)
         resume(err, v0);
       } catch (e) {
         resume([...err, `Error in LOG operation: ${e.message}`], null);
+      }
+    });
+  }
+  ISEMPTY(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [].concat(e0);
+      try {
+        if (!Array.isArray(v0)) {
+          resume([...err, `Error in ISEMPTY operation: expected a list, got ${typeof v0}`], false);
+          return;
+        }
+        resume(err, v0.length === 0);
+      } catch (e) {
+        resume([...err, `Error in ISEMPTY operation: ${e.message}`], false);
       }
     });
   }

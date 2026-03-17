@@ -279,5 +279,13 @@ export const lexicon = {
     "arity": 1,
     "type": "<any: any>",
     "description": "Logs the value to the console and returns the value (identity function)."
+  },
+  "isempty": {
+    "tk": 1,
+    "name": "ISEMPTY",
+    "cls": "function",
+    "arity": 1,
+    "type": "<list: boolean>",
+    "description": "Returns true if the list is empty, otherwise returns false."
   }
 };

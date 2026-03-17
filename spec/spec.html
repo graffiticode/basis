@@ -7,13 +7,56 @@
 <script>(function(){var r,a=[];document.addEventListener("readystatechange",function(){document.readyState==="interactive"&&u()});function u(){var n=document.querySelector('label[for="spec-sidebar-toggle"]');n.addEventListener("scroll",o),n.addEventListener("touchmove",o);function o(d){d.preventDefault()}for(var t=document.getElementsByTagName("section"),e=0;e<t.length;e++)t[e].getAttribute("secid")&&a.push(t[e]);var i=window.scrollY,c=!1;window.addEventListener("scroll",function(d){i=window.scrollY,c||(c=!0,window.requestAnimationFrame(function(){s(i),c=!1}))})}function s(n){for(var o=n+document.documentElement.clientHeight/4,t,e=a.length-1;e>=0;e--)if(a[e].offsetTop<o){t=a[e];break}var i=t&&t.getAttribute("secid");i!==r&&(r&&l(r,!1),i&&l(i,!0),r=i)}function l(n,o){document.getElementById("_sidebar_"+n).className=o?"viewing":"";for(var t=n.split(".");t.length;){var e=document.getElementById("_toggle_"+t.join("."));e&&(e.checked=o),t.pop()}}s(window.scrollY);})();</script>
 <script>(function(){var n=document.getElementsByTagName("style")[0].sheet,e;function u(){e&&(n.deleteRule(e),e=void 0)}function d(t){u(),e=n.insertRule('*[data-name="'+t+'"] { background: rgba(230,215,0,0.12); }',n.cssRules.length)}document.documentElement.addEventListener("mouseover",function(t){var a=t.target.attributes["data-name"];a&&d(a.value)});document.documentElement.addEventListener("mouseout",u);})();</script>
 <script>(function(){var R="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",o,p,r,g;document.addEventListener("selectionchange",E);window.addEventListener("resize",C);window.addEventListener("hashchange",x);window.addEventListener("load",x);function S(n){y(new URL(n.target.href))}function x(){y(window.location)}function y(n){var e=n.hash.match(/^#sel-([A-Za-z0-9-_]+)$/);if(!!e){g=e[1],r=k(g);var t=r.getBoundingClientRect(),d=Math.max(20,Math.floor((window.innerHeight-t.height)*.4));window.scrollTo(0,window.scrollY+t.y-d);var c=document.getSelection();c.empty(),c.addRange(r),C()}}function E(n){var e=document.getSelection();if(e.isCollapsed)o&&(o.parentNode.removeChild(o),o=null);else{var t=e.getRangeAt(0);(!r||t.compareBoundaryPoints(Range.START_TO_START,r)!==0||t.compareBoundaryPoints(Range.END_TO_END,r)!==0)&&(r=t,g=B(r),C())}}function C(){if(!!r){p||(p=document.getElementsByTagName("article")[0]),o||(o=document.createElement("a"),document.body.appendChild(o)),o.href="#sel-"+g,o.onclick=S,o.className=r.isOutdated?"outdated-selection-link":"selection-link",o.innerText=r.isOutdated?"!":"\u201F";var n=window.innerWidth<720,e=r.getBoundingClientRect();if(n)o.style.left=Math.floor(e.x+e.width/2+window.scrollX-13)+"px",o.style.top=Math.floor(e.bottom+window.scrollY+10)+"px";else{var t=p.getBoundingClientRect().x;o.style.left=Math.floor(t+window.scrollX-37)+"px",o.style.top=Math.floor(e.y+window.scrollY-3)+"px"}}}function B(n){var e="",t=N(n.startContainer),d=N(n.endContainer),c=M(t,d);return l(c),l(t.slice(c.length).concat(n.startOffset)),l(d.slice(c.length).concat(n.endOffset)),i(L(n.toString())),e;function i(a){do e+=R[a&31|(a>31?32:0)],a>>=5;while(a>0)}function l(a){i(a.length);for(var h=0;h<a.length;h++)i(a[h])}}function k(n){for(var e=new Array(64),t=0;t<64;t++)e[R.charCodeAt(t)]=t;var d=0,c=m(),i=m(),l=m(),a=w(),h=i.pop(),P=O(c.concat(i)),T=l.pop(),A=O(c.concat(l)),u=document.createRange();return u.setStart(P,h),u.setEnd(A,T),u.isOutdated=a!==void 0&&a!==L(u.toString()),u;function w(){for(var s=0,v=0;d<n.length;){var f=e[n.charCodeAt(d++)];if(s|=(f&31)<<v,v+=5,f<32)return s}}function m(){var s=w();if(s!=null){for(var v=new Array(s),f=0;f<s;f++)v[f]=w();return v}}}function N(n){for(var e=[];n!=document.body;){var t=n.parentNode;e.push(Array.prototype.indexOf.call(t.childNodes,n)),n=t}return e.reverse()}function O(n){for(var e=document.body,t=0;t<n.length&&e;t++)e=e.childNodes[n[t]];return e}function M(n,e){for(var t=0;t<n.length&&t<e.length&&n[t]===e[t];)t++;return n.slice(0,t)}function L(n){for(var e=2166136261,t=0;t<n.length;++t)e^=n.charCodeAt(t),e+=(e<<1)+(e<<4)+(e<<7)+(e<<8)+(e<<24);return(e>>15^e)&32767}})();</script>
-</head>
+
+<style>
+pre {
+  position: relative;
+}
+.copy-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-pre-border);
+  border-radius: 4px;
+  background: var(--color-background);
+  color: var(--color-grey);
+  font-family: var(--font-family);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+pre:hover .copy-button {
+  opacity: 1;
+}
+.copy-button:hover {
+  background: var(--color-pre-border);
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("pre > code").forEach(function (code) {
+    var pre = code.parentElement;
+    var btn = document.createElement("button");
+    btn.className = "copy-button";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(code.textContent).then(function () {
+        btn.textContent = "Copied!";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script></head>
 <body><article>
 <header>
 <h1>Graffiticode Core Language Specification</h1>
 <section id="intro">
-<pre><code>Version: 0.1.1
-Date: 2025-07-07
+<pre><code>Version: 0.1.2
+Date: 2026-01-26
 </code></pre>
 </section>
 <nav class="spec-toc">
@@ -71,7 +114,7 @@ Date: 2025-07-07
 <li><a href="#sec-filter"><span class="spec-secid">6.2.6</span>filter</a></li>
 <li><a href="#sec-get"><span class="spec-secid">6.2.7</span>get</a></li>
 <li><a href="#sec-hd"><span class="spec-secid">6.2.8</span>hd</a></li>
-<li><a href="#sec-isEmpty"><span class="spec-secid">6.2.9</span>isEmpty</a></li>
+<li><a href="#sec-isempty"><span class="spec-secid">6.2.9</span>isempty</a></li>
 <li><a href="#sec-log"><span class="spec-secid">6.2.10</span>log</a></li>
 <li><a href="#sec-map"><span class="spec-secid">6.2.11</span>map</a></li>
 <li><a href="#sec-max"><span class="spec-secid">6.2.12</span>max</a></li>
@@ -81,11 +124,12 @@ Date: 2025-07-07
 <li><a href="#sec-not"><span class="spec-secid">6.2.16</span>not</a></li>
 <li><a href="#sec-nth"><span class="spec-secid">6.2.17</span>nth</a></li>
 <li><a href="#sec-or"><span class="spec-secid">6.2.18</span>or</a></li>
-<li><a href="#sec-range"><span class="spec-secid">6.2.19</span>range</a></li>
-<li><a href="#sec-reduce"><span class="spec-secid">6.2.20</span>reduce</a></li>
-<li><a href="#sec-set"><span class="spec-secid">6.2.21</span>set</a></li>
-<li><a href="#sec-sub"><span class="spec-secid">6.2.22</span>sub</a></li>
-<li><a href="#sec-tl"><span class="spec-secid">6.2.23</span>tl</a></li>
+<li><a href="#sec-pow"><span class="spec-secid">6.2.19</span>pow</a></li>
+<li><a href="#sec-range"><span class="spec-secid">6.2.20</span>range</a></li>
+<li><a href="#sec-reduce"><span class="spec-secid">6.2.21</span>reduce</a></li>
+<li><a href="#sec-set"><span class="spec-secid">6.2.22</span>set</a></li>
+<li><a href="#sec-sub"><span class="spec-secid">6.2.23</span>sub</a></li>
+<li><a href="#sec-tl"><span class="spec-secid">6.2.24</span>tl</a></li>
 </ol>
 </li>
 </ol>
@@ -385,7 +429,7 @@ let zip = &lt;xs ys: zipLists xs ys&gt;  | type: &lt;[T] [U]: [(T, U)]&gt;
 <td align="left">First item of list</td>
 </tr>
 <tr>
-<td align="left"><code>isEmpty</code></td>
+<td align="left"><code>isempty</code></td>
 <td align="left"><code>&lt;list: bool&gt;</code></td>
 <td align="left">Returns true if the list is empty</td>
 </tr>
@@ -433,6 +477,11 @@ let zip = &lt;xs ys: zipLists xs ys&gt;  | type: &lt;[T] [U]: [(T, U)]&gt;
 <td align="left"><code>or</code></td>
 <td align="left"><code>&lt;bool bool: bool&gt;</code></td>
 <td align="left">Logical OR operation</td>
+</tr>
+<tr>
+<td align="left"><code>pow</code></td>
+<td align="left"><code>&lt;number number: number&gt;</code></td>
+<td align="left">Raises first number to the power of second</td>
 </tr>
 <tr>
 <td align="left"><code>range</code></td>
@@ -516,10 +565,10 @@ equiv "a" "b"    | returns false
 <pre><code>hd [10 20 30]  | returns 10
 </code></pre>
 </section>
-<section id="sec-isEmpty" secid="6.2.9">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-isEmpty">6.2.9</a></span>isEmpty</h3>
+<section id="sec-isempty" secid="6.2.9">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-isempty">6.2.9</a></span>isempty</h3>
 <p>Return true if list is empty, otherwise return false</p>
-<pre><code>isEmpty []  | returns true
+<pre><code>isempty []  | returns true
 </code></pre>
 </section>
 <section id="sec-log" secid="6.2.10">
@@ -581,32 +630,39 @@ or true false   | returns true
 or true true    | returns true
 </code></pre>
 </section>
-<section id="sec-range" secid="6.2.19">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-range">6.2.19</a></span>range</h3>
+<section id="sec-pow" secid="6.2.19">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-pow">6.2.19</a></span>pow</h3>
+<p>Raise the first number to the power of the second</p>
+<pre><code>pow 2 3  | returns 8
+pow 5 2  | returns 25
+</code></pre>
+</section>
+<section id="sec-range" secid="6.2.20">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-range">6.2.20</a></span>range</h3>
 <p>Produce a range list from start to end (exclusive) with step</p>
 <pre><code>range 1 10 2  | returns [1 3 5 7 9]
 </code></pre>
 </section>
-<section id="sec-reduce" secid="6.2.20">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-reduce">6.2.20</a></span>reduce</h3>
+<section id="sec-reduce" secid="6.2.21">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-reduce">6.2.21</a></span>reduce</h3>
 <p>Reduce a list to a single value, starting with an initial value</p>
 <pre><code>reduce (&lt;a b: add a b&gt;) 0 [1 2 3 4]  | returns 10
 </code></pre>
 </section>
-<section id="sec-set" secid="6.2.21">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-set">6.2.21</a></span>set</h3>
+<section id="sec-set" secid="6.2.22">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-set">6.2.22</a></span>set</h3>
 <p>Return a new record with an updated field</p>
 <pre><code>set "a" 2 {a: 1}  | returns {a: 2}
 </code></pre>
 </section>
-<section id="sec-sub" secid="6.2.22">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-sub">6.2.22</a></span>sub</h3>
+<section id="sec-sub" secid="6.2.23">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-sub">6.2.23</a></span>sub</h3>
 <p>Subtract the second number from the first</p>
 <pre><code>sub 5 2  | returns 3
 </code></pre>
 </section>
-<section id="sec-tl" secid="6.2.23">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-tl">6.2.23</a></span>tl</h3>
+<section id="sec-tl" secid="6.2.24">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-tl">6.2.24</a></span>tl</h3>
 <p>Return all but the first item</p>
 <pre><code>tl [10 20 30]  | returns [20 30]
 </code></pre>
@@ -707,7 +763,7 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_6.2.6"><a href="#sec-filter"><span class="spec-secid">6.2.6</span>filter</a></li>
 <li id="_sidebar_6.2.7"><a href="#sec-get"><span class="spec-secid">6.2.7</span>get</a></li>
 <li id="_sidebar_6.2.8"><a href="#sec-hd"><span class="spec-secid">6.2.8</span>hd</a></li>
-<li id="_sidebar_6.2.9"><a href="#sec-isEmpty"><span class="spec-secid">6.2.9</span>isEmpty</a></li>
+<li id="_sidebar_6.2.9"><a href="#sec-isempty"><span class="spec-secid">6.2.9</span>isempty</a></li>
 <li id="_sidebar_6.2.10"><a href="#sec-log"><span class="spec-secid">6.2.10</span>log</a></li>
 <li id="_sidebar_6.2.11"><a href="#sec-map"><span class="spec-secid">6.2.11</span>map</a></li>
 <li id="_sidebar_6.2.12"><a href="#sec-max"><span class="spec-secid">6.2.12</span>max</a></li>
@@ -717,11 +773,12 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_6.2.16"><a href="#sec-not"><span class="spec-secid">6.2.16</span>not</a></li>
 <li id="_sidebar_6.2.17"><a href="#sec-nth"><span class="spec-secid">6.2.17</span>nth</a></li>
 <li id="_sidebar_6.2.18"><a href="#sec-or"><span class="spec-secid">6.2.18</span>or</a></li>
-<li id="_sidebar_6.2.19"><a href="#sec-range"><span class="spec-secid">6.2.19</span>range</a></li>
-<li id="_sidebar_6.2.20"><a href="#sec-reduce"><span class="spec-secid">6.2.20</span>reduce</a></li>
-<li id="_sidebar_6.2.21"><a href="#sec-set"><span class="spec-secid">6.2.21</span>set</a></li>
-<li id="_sidebar_6.2.22"><a href="#sec-sub"><span class="spec-secid">6.2.22</span>sub</a></li>
-<li id="_sidebar_6.2.23"><a href="#sec-tl"><span class="spec-secid">6.2.23</span>tl</a></li>
+<li id="_sidebar_6.2.19"><a href="#sec-pow"><span class="spec-secid">6.2.19</span>pow</a></li>
+<li id="_sidebar_6.2.20"><a href="#sec-range"><span class="spec-secid">6.2.20</span>range</a></li>
+<li id="_sidebar_6.2.21"><a href="#sec-reduce"><span class="spec-secid">6.2.21</span>reduce</a></li>
+<li id="_sidebar_6.2.22"><a href="#sec-set"><span class="spec-secid">6.2.22</span>set</a></li>
+<li id="_sidebar_6.2.23"><a href="#sec-sub"><span class="spec-secid">6.2.23</span>sub</a></li>
+<li id="_sidebar_6.2.24"><a href="#sec-tl"><span class="spec-secid">6.2.24</span>tl</a></li>
 </ol>
 </li>
 </ol>

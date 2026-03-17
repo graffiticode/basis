@@ -1,8 +1,8 @@
 # Graffiticode Core Language Specification
 
 ```
-Version: 0.1.1
-Date: 2025-07-07
+Version: 0.1.2
+Date: 2026-01-26
 ```
 
 # Introduction
@@ -315,7 +315,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `filter` | `<function list: list>` | Keeps items matching predicate |
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
 | `hd` | `<list: any>` | First item of list |
-| `isEmpty` | `<list: bool>` | Returns true if the list is empty |
+| `isempty` | `<list: bool>` | Returns true if the list is empty |
 | `log` | `<any: any>` | Logs the value to console and returns it (identity function) |
 | `map` | `<function list: list>` | Applies function to each item |
 | `max` | `<number number: number>` | Returns the larger of two numbers |
@@ -325,6 +325,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `not` | `<bool: bool>` | Logical NOT operation, inverts a boolean value |
 | `nth` | `<number list: any>` | Nth element of list |
 | `or` | `<bool bool: bool>` | Logical OR operation |
+| `pow` | `<number number: number>` | Raises first number to the power of second |
 | `range` | `<number number number: list>` | Generates a range list |
 | `reduce` | `<function any list: any>` | Combines list using a reducer with initial value |
 | `set` | `<string any record: record>` | Returns a new record with a key set to a value |
@@ -402,12 +403,12 @@ Return the first item
 hd [10 20 30]  | returns 10
 ```
 
-### isEmpty
+### isempty
 
 Return true if list is empty, otherwise return false
 
 ```
-isEmpty []  | returns true
+isempty []  | returns true
 ```
 
 ### log
@@ -485,6 +486,15 @@ or false false  | returns false
 or false true   | returns true
 or true false   | returns true
 or true true    | returns true
+```
+
+### pow
+
+Raise the first number to the power of the second
+
+```
+pow 2 3  | returns 8
+pow 5 2  | returns 25
 ```
 
 ### range
