@@ -1,13 +1,13 @@
 {
   "name": "@graffiticode/basis",
   "type": "module",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "The basis library for creating Graffiticode languages",
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "build-spec": "npx spec-md ./spec/spec.md > ./spec/spec.html",
-    "watch-spec": "npx nodemon --exec 'npx spec-md > ./spec/spec.html' ./spec/spec.md",
+    "build-spec": "node spec/build.js",
+    "watch-spec": "npx nodemon --exec 'node spec/build.js' ./spec/spec.md",
     "publish-spec": "npm run build-spec && for dir in ../l0*/packages/api/public; do cp ./spec/spec.html \"$dir/graffiticode-language-spec.html\"; echo \"Copied to $dir/graffiticode-language-spec.html\"; done"
   },
   "engines": {
@@ -28,7 +28,8 @@
     "hashids": "^2.2.8",
     "https": "^1.0.0",
     "jest": "^27.0.1",
-    "react": "^17.0.2"
+    "react": "^17.0.2",
+    "spec-md": "^3.1.0"
   },
   "dependencies": {
     "decimal.js": "^10.5.0"

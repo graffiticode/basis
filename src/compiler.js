@@ -181,7 +181,7 @@ export class Checker extends Visitor {
   }
   STR(node, options, resume) {
     const err = [];
-    const val = node.elts[0];
+    const val = node;
     resume(err, val);
   }
   JSON(node, options, resume) {
