@@ -526,6 +526,15 @@ export class Checker extends Visitor {
       resume(err, val);
     });
   }
+  CONS(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -1418,6 +1427,27 @@ export class Transformer extends Visitor {
       } catch (e) {
         resume([...err, `Error in ISEMPTY operation: ${e.message}`], false);
       }
+    });
+  }
+  CONS(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        console.log(
+          "CONS()",
+          "v0=" + JSON.stringify(v0),
+          "v1=" + JSON.stringify(v1),
+        );
+        const err = [].concat(e0).concat(e1);
+        try {
+          if (!Array.isArray(v1)) {
+            resume([...err, `Error in CONS operation: expected a list, got ${typeof v1}`], [v0]);
+            return;
+          }
+          resume(err, [v0, ...v1]);
+        } catch (e) {
+          resume([...err, `Error in CONS operation: ${e.message}`], []);
+        }
+      });
     });
   }
 }

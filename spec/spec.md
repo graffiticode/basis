@@ -310,6 +310,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `add` | `<number number: number>` | Adds two numbers |
 | `and` | `<bool bool: bool>` | Logical AND operation |
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
+| `cons` | `<any list: list>` | Prepends an element to the front of a list |
 | `div` | `<number number: number>` | Divides numbers |
 | `equiv` | `<any any: bool>` | Tests if two values are strictly equivalent |
 | `filter` | `<function list: list>` | Keeps items matching predicate |
@@ -357,6 +358,15 @@ Apply a function to an argument list
 
 ```
 apply add [1 2]  | returns 3
+```
+
+### cons
+
+Prepend an element to the front of a list
+
+```
+cons 1 [2 3]  | returns [1 2 3]
+cons 0 []     | returns [0]
 ```
 
 ### div
