@@ -108,8 +108,11 @@ export class Checker extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         this.visit(node.elts[2], options, (e2, v2) => {
+          // Ensure message is always a string
+          const message = typeof v0 === "string" ? v0
+            : (v0?.tag === "STR" ? v0.elts[0] : JSON.stringify(v0));
           const err = [{
-            message: v0,
+            message,
             from: v1,
             to: v2
           }];
@@ -1520,6 +1523,22 @@ export class Renderer {
   }
 }
 
+function normalizeError(err) {
+  if (typeof err === "string") return { message: err, from: -1, to: -1 };
+  if (err && typeof err === "object") {
+    let message = typeof err.message === "string" ? err.message
+      : (err.message?.tag === "STR" ? err.message.elts[0]
+      : (typeof err.error === "string" ? err.error : JSON.stringify(err.message || err)));
+    return { message, from: err.from ?? -1, to: err.to ?? -1 };
+  }
+  return { message: String(err), from: -1, to: -1 };
+}
+
+function normalizeErrors(errs) {
+  if (!Array.isArray(errs)) return [];
+  return errs.filter(e => e != null && e !== "").map(normalizeError);
+}
+
 export class Compiler {
   constructor(config) {
     this.langID = config.langID;
@@ -1540,17 +1559,19 @@ export class Compiler {
       };
       const checker = new this.Checker(code);
       checker.check(options, (err, val) => {
-        if (err.length > 0) {
-          resume(err);
+        const normalized = normalizeErrors(err);
+        if (normalized.length > 0) {
+          resume(normalized);
         } else {
           const transformer = new this.Transformer(code);
           transformer.transform(options, (err, val) => {
-            if (err && err.length) {
-              resume(err, val);
+            const normalized = normalizeErrors(err);
+            if (normalized.length > 0) {
+              resume(normalized, val);
             } else {
               const renderer = new this.Renderer(val);
               renderer.render(options, (err, val) => {
-                resume(err, val);
+                resume(normalizeErrors(err), val);
               });
             }
           });
@@ -1559,10 +1580,7 @@ export class Compiler {
     } catch (x) {
       console.log("ERROR with code");
       console.log(x.stack);
-      resume([{
-        statusCode: 500,
-        error: "Compiler error"
-      }]);
+      resume([{ message: "Compiler error", from: -1, to: -1 }]);
     }
   }
 }
