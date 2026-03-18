@@ -103,7 +103,7 @@ export const lexicon = {
     "type": "<number number: boolean>",
     "description": "Returns true if the two values are not equal."
   },
-  "len": {
+  "length": {
     "tk": 1,
     "name": "LEN",
     "cls": "function",
@@ -115,9 +115,9 @@ export const lexicon = {
     "tk": 1,
     "name": "CONCAT",
     "cls": "function",
-    "arity": 1,
-    "type": "<list: list|string>",
-    "description": "Concatenates a list of strings or nested lists."
+    "arity": 2,
+    "type": "<string|list string|list: string|list>",
+    "description": "Concatenates two strings or two lists."
   },
   "add": {
     "tk": 1,

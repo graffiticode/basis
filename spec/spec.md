@@ -253,7 +253,7 @@ In this case, `red`, `blue`, and `green` are all of type `tag`, and `case` match
 
 ```gc
 let inc = <x: add x 1>  | type: <number: number>
-let greet = <name: concat ["Hello, " name]>  | type: <string: string>
+let greet = <name: concat "Hello, " name>  | type: <string: string>
 let zip = <xs ys: zipLists xs ys>  | type: <[T] [U]: [(T, U)]>
 ```
 
@@ -310,6 +310,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `add` | `<number number: number>` | Adds two numbers |
 | `and` | `<bool bool: bool>` | Logical AND operation |
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
+| `concat` | `<string|list string|list: string|list>` | Concatenates two strings or two lists |
 | `cons` | `<any list: list>` | Prepends an element to the front of a list |
 | `div` | `<number number: number>` | Divides numbers |
 | `equiv` | `<any any: bool>` | Tests if two values are strictly equivalent |
@@ -317,6 +318,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
 | `hd` | `<list: any>` | First item of list |
 | `isempty` | `<list: bool>` | Returns true if the list is empty |
+| `length` | `<list|string: integer>` | Returns the length of a list or string |
 | `log` | `<any: any>` | Logs the value to console and returns it (identity function) |
 | `map` | `<function list: list>` | Applies function to each item |
 | `max` | `<number number: number>` | Returns the larger of two numbers |
@@ -358,6 +360,15 @@ Apply a function to an argument list
 
 ```
 apply add [1 2]  | returns 3
+```
+
+### concat
+
+Concatenate two strings or two lists
+
+```
+concat "hello " "world"  | returns "hello world"
+concat [1 2] [3 4]       | returns [1 2 3 4]
 ```
 
 ### cons
@@ -419,6 +430,16 @@ Return true if list is empty, otherwise return false
 
 ```
 isempty []  | returns true
+```
+
+### length
+
+Return the length of a list or string
+
+```
+length [1 2 3]    | returns 3
+length "hello"    | returns 5
+length []         | returns 0
 ```
 
 ### log

@@ -194,9 +194,11 @@ export class Checker extends Visitor {
   }
   CONCAT(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [].concat(e0);
-      const val = node;
-      resume(err, val);
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = node;
+        resume(err, val);
+      });
     });
   }
   ADD(node, options, resume) {
@@ -784,9 +786,16 @@ export class Transformer extends Visitor {
   }
   CONCAT(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
-      const val = ([].concat(v0)).join('');
-      resume(err, val);
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        if (typeof v0 === 'string' && typeof v1 === 'string') {
+          resume(err, v0 + v1);
+        } else if (Array.isArray(v0) && Array.isArray(v1)) {
+          resume(err, [...v0, ...v1]);
+        } else {
+          resume([...err, `Error in CONCAT operation: both arguments must be strings or both must be lists`], undefined);
+        }
+      });
     });
   }
   ADD(node, options, resume) {
@@ -946,7 +955,7 @@ export class Transformer extends Visitor {
   LEN(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = e0;
-      const val = Array.isArray(v0) && v0.length;
+      const val = (Array.isArray(v0) || typeof v0 === 'string') ? v0.length : 0;
       resume(err, val);
     });
   }
