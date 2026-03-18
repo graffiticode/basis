@@ -219,6 +219,15 @@ export class Checker extends Visitor {
       });
     });
   }
+  DIV(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
   GET(node, options, resume) {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
@@ -537,6 +546,15 @@ export class Checker extends Visitor {
       });
     });
   }
+  APPEND(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
 }
 
 function enterEnv(ctx, name, paramc) {
@@ -820,6 +838,19 @@ export class Transformer extends Visitor {
           resume(err, val);
         } catch (e) {
           resume([...err, `Error in SUB operation: ${e.message}`], NaN);
+        }
+      });
+    });
+  }
+  DIV(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          const val = new Decimal(v0).dividedBy(new Decimal(v1)).toNumber();
+          resume(err, val);
+        } catch (e) {
+          resume([...err, `Error in DIV operation: ${e.message}`], NaN);
         }
       });
     });
@@ -1455,6 +1486,22 @@ export class Transformer extends Visitor {
           resume(err, [v0, ...v1]);
         } catch (e) {
           resume([...err, `Error in CONS operation: ${e.message}`], []);
+        }
+      });
+    });
+  }
+  APPEND(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          if (!Array.isArray(v1)) {
+            resume([...err, `Error in APPEND operation: expected a list, got ${typeof v1}`], [v0]);
+            return;
+          }
+          resume(err, [...v1, v0]);
+        } catch (e) {
+          resume([...err, `Error in APPEND operation: ${e.message}`], []);
         }
       });
     });

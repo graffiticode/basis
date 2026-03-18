@@ -39,6 +39,14 @@ export const lexicon = {
     "type": "<number number: number>",
     "description": "Subtracts the second number from the first."
   },
+  "div": {
+    "tk": 1,
+    "name": "DIV",
+    "cls": "function",
+    "arity": 2,
+    "type": "<number number: number>",
+    "description": "Divides the first number by the second."
+  },
   "filter": {
     "tk": 1,
     "name": "FILTER",

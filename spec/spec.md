@@ -309,6 +309,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | :------- | :-------- | :---------- |
 | `add` | `<number number: number>` | Adds two numbers |
 | `and` | `<bool bool: bool>` | Logical AND operation |
+| `append` | `<any list: list>` | Appends an element to the end of a list |
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
 | `concat` | `<string|list string|list: string|list>` | Concatenates two strings or two lists |
 | `cons` | `<any list: list>` | Prepends an element to the front of a list |
@@ -341,6 +342,15 @@ Add two numbers.
 
 ```
 add 2 3  | returns 5
+```
+
+### append
+
+Append an element to the end of a list
+
+```
+append 4 [1 2 3]  | returns [1 2 3 4]
+append 1 []       | returns [1]
 ```
 
 ### and
