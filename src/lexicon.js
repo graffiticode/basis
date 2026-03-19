@@ -113,7 +113,7 @@ export const lexicon = {
   },
   "length": {
     "tk": 1,
-    "name": "LEN",
+    "name": "LENGTH",
     "cls": "function",
     "arity": 1,
     "type": "<list|string: integer>",
@@ -295,5 +295,29 @@ export const lexicon = {
     "arity": 1,
     "type": "<list: boolean>",
     "description": "Returns true if the list is empty, otherwise returns false."
+  },
+  "last": {
+    "tk": 1,
+    "name": "LAST",
+    "cls": "function",
+    "arity": 1,
+    "type": "<list: any>",
+    "description": "Returns the last element of a list."
+  },
+  "drop": {
+    "tk": 1,
+    "name": "DROP",
+    "cls": "function",
+    "arity": 2,
+    "type": "<integer list: list>",
+    "description": "Returns a list with the first n elements removed."
+  },
+  "take": {
+    "tk": 1,
+    "name": "TAKE",
+    "cls": "function",
+    "arity": 2,
+    "type": "<integer list: list>",
+    "description": "Returns the first n elements of a list."
   }
 };

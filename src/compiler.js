@@ -303,7 +303,7 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
-  LEN(node, options, resume) {
+  LENGTH(node, options, resume) {
     const err = [];
     const val = node;
     resume(err, val);
@@ -550,6 +550,31 @@ export class Checker extends Visitor {
     });
   }
   APPEND(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  LAST(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      const err = [].concat(err1);
+      const val = node;
+      resume(err, val);
+    });
+  }
+  DROP(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        const val = node;
+        resume(err, val);
+      });
+    });
+  }
+  TAKE(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [].concat(e0).concat(e1);
@@ -986,7 +1011,7 @@ export class Transformer extends Visitor {
     const val = node;
     resume(err, val);
   }
-  LEN(node, options, resume) {
+  LENGTH(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = e0;
       const val = (Array.isArray(v0) || typeof v0 === 'string') ? v0.length : 0;
@@ -1505,6 +1530,59 @@ export class Transformer extends Visitor {
           resume(err, [...v1, v0]);
         } catch (e) {
           resume([...err, `Error in APPEND operation: ${e.message}`], []);
+        }
+      });
+    });
+  }
+  LAST(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [].concat(e0);
+      try {
+        if (!Array.isArray(v0)) {
+          resume([...err, `Error in LAST operation: expected an array, got ${typeof v0}`], null);
+          return;
+        }
+        if (v0.length === 0) {
+          resume([...err, `Error in LAST operation: empty array has no last element`], null);
+          return;
+        }
+        const val = v0[v0.length - 1];
+        resume(err, val);
+      } catch (e) {
+        resume([...err, `Error in LAST operation: ${e.message}`], null);
+      }
+    });
+  }
+  DROP(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          if (!Array.isArray(v1)) {
+            resume([...err, `Error in DROP operation: expected a list, got ${typeof v1}`], []);
+            return;
+          }
+          const n = typeof v0 === 'number' ? v0 : Number(v0);
+          resume(err, v1.slice(n));
+        } catch (e) {
+          resume([...err, `Error in DROP operation: ${e.message}`], []);
+        }
+      });
+    });
+  }
+  TAKE(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [].concat(e0).concat(e1);
+        try {
+          if (!Array.isArray(v1)) {
+            resume([...err, `Error in TAKE operation: expected a list, got ${typeof v1}`], []);
+            return;
+          }
+          const n = typeof v0 === 'number' ? v0 : Number(v0);
+          resume(err, v1.slice(0, n));
+        } catch (e) {
+          resume([...err, `Error in TAKE operation: ${e.message}`], []);
         }
       });
     });
