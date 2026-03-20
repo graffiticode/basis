@@ -460,13 +460,6 @@ export class Checker extends Visitor {
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
         let err = [].concat(err1).concat(err2);
-        const validTypes = ["boolean", "string", "number"];
-        if (!validTypes.includes(typeof val1) && val1 !== null) {
-          err.push(`EQUIV operation requires primitive arguments, got ${typeof val1} for first argument`);
-        }
-        if (!validTypes.includes(typeof val2) && val2 !== null) {
-          err.push(`EQUIV operation requires primitive arguments, got ${typeof val2} for second argument`);
-        }
         const val = node;
         resume(err, val);
       });
@@ -1383,8 +1376,12 @@ export class Transformer extends Visitor {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [].concat(e0).concat(e1);
         try {
-          // Use strict equality for primitive comparison
-          const val = v0 === v1;
+          let val;
+          if (v0 !== null && v1 !== null && typeof v0 === "object" && typeof v1 === "object" && v0.tag !== undefined && v1.tag !== undefined && !v0.elts && !v1.elts) {
+            val = v0.tag === v1.tag;
+          } else {
+            val = v0 === v1;
+          }
           resume(err, val);
         } catch (e) {
           resume([...err, `Error in EQUIV operation: ${e.message}`], false);

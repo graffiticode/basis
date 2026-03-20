@@ -1,8 +1,8 @@
 # Graffiticode Core Language Specification
 
 ```
-Version: 0.1.2
-Date: 2026-01-26
+Version: 0.1.4
+Date: 2026-03-20
 ```
 
 # Introduction
@@ -16,6 +16,7 @@ This document defines the **Graffiticode Core Language Specification**, covering
 - **Identifiers**: Alphanumeric symbols beginning with a letter.
 - **Numbers**: Integers and floats. Negative numbers start with `-`.
 - **Strings**: Double-quoted UTF-8 strings.
+- **Keywords**: `let`, `case`, `of`, `end`, `tag`, `true`, `false`
 - **Symbols**: `(`, `)`, `[`, `]`, `{`, `}`, `:`, `..`, `<`, `>`, `,`
 
 ## Comments
@@ -81,27 +82,28 @@ let y = 2..
 
 ### Tags
 
-A **tag value** is an arity-0 symbolic value used to represent symbolic variants in pattern matching or other symbolic forms.
+A **tag value** is a symbolic value used to represent constants for pattern matching or other symbolic forms. Tags are identified by their name. Any two tags with the same name are equivalent.
 
-Tag values are **only defined** by using record shorthand syntax. For example:
+The `tag` keyword followed by an identifier constructs a tag value:
 
 ```gc
-{red blue green}   | defines the tag values red, blue, and green
+let red = tag red..
 ```
 
 Tag values:
 
-- Must be introduced via record shorthand notation
-- Are resolved as symbolic constants with identity semantics
-- Match directly in `case` expressions:
+- Have value semantics — same name means same tag
+- Can be used anywhere a value is expected
 
-```
-let color = get "red" {red blue green}
+```gc
+let red = tag red..
+let blue = tag blue..
+let color = red..
 case color of
   red: "warm"
   blue: "cool"
   _: "other"
-end
+end..
 ```
 
 ### Lambdas
@@ -132,6 +134,7 @@ end
 
 Supports:
 - Literal values
+- Tag values (matched by identity)
 - Tuple destructuring: `(a, b)`
 - Record destructuring: `{ name, age }`
 - Wildcard `_`
@@ -189,75 +192,22 @@ is equivalent to a function that returns another function:
 <number: <number: number>>
 ```
 
-## Tag Sets and Tag Value Type
+## Tag Type
 
-Tag values are symbolic constants introduced using record shorthand syntax. They have a default type of `tag`, and their identity is preserved across bindings.
-
-### Tag Identity and Type
-
-Tag values are symbolic constants identified **solely by their name**. The same tag name (e.g., `A`) refers to the same symbolic value, regardless of where it is defined.
-
-Tag values compare equal by name. For example, `A` in `{A B}` and `A` in `{A C}` are equal.
-
-### Tag Sets as Structural Types
-
-Although tag values are globally identified by name, the **type system tracks which tags are expected to co-occur**.
-
-For example, `{A B}` and `{A C}` are different types:
-
-```
-{A B}    | type: { A: tag, B: tag }
-{A C}    | type: { A: tag, C: tag }
-```
-
-This allows the type system to constrain the expected context for pattern matching, record shapes, or enum-style uses of tags.
-
-Using tags not part of the expected set results in a type error.
-
-### Default Type: `tag`
-
-By default, a tag value has the type:
+Tag values are symbolic constants identified solely by their name. The same tag name refers to the same value regardless of where it appears. Tag values have the type `tag`.
 
 ```gc
-tag
-```
-
-When tags are introduced with:
-
-```
-{A B C}
-```
-
-the resulting type is:
-
-```
-{ A: tag, B: tag, C: tag }
-```
-
-This allows for composition and safe comparison.
-
-### Example
-
-```gc
-let colors = {red blue green}..
-case red of
+let red = tag red..
+let blue = tag blue..
+let c = red..
+case c of
   red: "warm"
   blue: "cool"
   _: "other"
-end
+end..
 ```
 
-In this case, `red`, `blue`, and `green` are all of type `tag`, and `case` matches by identity.
-
-## Example: Annotated Definitions
-
-```gc
-let inc = <x: add x 1>  | type: <number: number>
-let greet = <name: concat "Hello, " name>  | type: <string: string>
-let zip = <xs ys: zipLists xs ys>  | type: <[T] [U]: [(T, U)]>
-```
-
-(Note: actual Graffiticode does not use type annotations in `let` bindings; types are inferred.)
+In this case, `red` and `blue` are tag patterns, and `case` matches by identity.
 
 # Semantics
 
@@ -288,6 +238,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 ## Errors
 
 - **Syntax errors**: raised during parsing
+- **Undefined reference errors**: raised during parsing when an identifier is not a known keyword, builtin, bound variable, or tag
 - **Type errors**: raised during compilation
 - **Runtime errors**: e.g., out-of-bounds access
 
@@ -313,27 +264,39 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
 | `concat` | `<string|list string|list: string|list>` | Concatenates two strings or two lists |
 | `cons` | `<any list: list>` | Prepends an element to the front of a list |
+| `data` | `<record: record>` | Returns upstream task data, or the argument if no input exists |
 | `div` | `<number number: number>` | Divides numbers |
-| `equiv` | `<any any: bool>` | Tests if two values are strictly equivalent |
+| `drop` | `<integer list: list>` | Returns a list with the first n elements removed |
+| `eq` | `<number number: bool>` | Numeric equality |
+| `equiv` | `<any any: bool>` | Semantic equivalence for any type, including tags |
 | `filter` | `<function list: list>` | Keeps items matching predicate |
+| `ge` | `<number number: bool>` | Returns true if first value is greater than or equal to second |
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
+| `gt` | `<number number: bool>` | Returns true if first value is greater than second |
 | `hd` | `<list: any>` | First item of list |
 | `isempty` | `<list: bool>` | Returns true if the list is empty |
+| `json` | `<string: any>` | Parses a string as JSON |
+| `last` | `<list: any>` | Returns the last element of a list |
+| `le` | `<number number: bool>` | Returns true if first value is less than or equal to second |
 | `length` | `<list|string: integer>` | Returns the length of a list or string |
 | `log` | `<any: any>` | Logs the value to console and returns it (identity function) |
+| `lt` | `<number number: bool>` | Returns true if first value is less than second |
 | `map` | `<function list: list>` | Applies function to each item |
 | `max` | `<number number: number>` | Returns the larger of two numbers |
 | `min` | `<number number: number>` | Returns the smaller of two numbers |
 | `mod` | `<number number: number>` | Remainder of division |
 | `mul` | `<number number: number>` | Multiplies numbers |
+| `ne` | `<number number: bool>` | Returns true if the two values are not equal |
 | `not` | `<bool: bool>` | Logical NOT operation, inverts a boolean value |
 | `nth` | `<number list: any>` | Nth element of list |
 | `or` | `<bool bool: bool>` | Logical OR operation |
 | `pow` | `<number number: number>` | Raises first number to the power of second |
+| `print` | `<any: record>` | Outputs a value to the form |
 | `range` | `<number number number: list>` | Generates a range list |
 | `reduce` | `<function any list: any>` | Combines list using a reducer with initial value |
 | `set` | `<string any record: record>` | Returns a new record with a key set to a value |
 | `sub` | `<number number: number>` | Subtracts numbers |
+| `take` | `<integer list: list>` | Returns the first n elements of a list |
 | `tl` | `<list: list>` | All items except first |
 
 ### add
@@ -390,6 +353,14 @@ cons 1 [2 3]  | returns [1 2 3]
 cons 0 []     | returns [0]
 ```
 
+### data
+
+Returns the data from the upstream task, or the argument value if no input exists
+
+```
+data {x: 1, y: 2}  | returns {x: 1, y: 2} if no upstream input
+```
+
 ### div
 
 Divide the first number by the second
@@ -398,9 +369,27 @@ Divide the first number by the second
 div 10 2  | returns 5
 ```
 
+### drop
+
+Returns a list with the first n elements removed
+
+```
+drop 2 [1 2 3 4 5]  | returns [3 4 5]
+drop 0 [1 2 3]       | returns [1 2 3]
+```
+
+### eq
+
+Numeric equality
+
+```
+eq 1 1  | returns true
+eq 1 2  | returns false
+```
+
 ### equiv
 
-Tests if two values are strictly equivalent
+Semantic equivalence for any type, including tags
 
 ```
 equiv 1 1        | returns true
@@ -410,9 +399,28 @@ equiv 1 2        | returns false
 equiv "a" "b"    | returns false
 ```
 
+Tags can be compared with `equiv`:
+
+```gc
+let red = tag red..
+let blue = tag blue..
+equiv red red    | returns true
+equiv red blue   | returns false
+```
+
 ### filter
 
 Filter elements matching predicate
+
+### ge
+
+Returns true if the first value is greater than or equal to the second
+
+```
+ge 5 3  | returns true
+ge 3 3  | returns true
+ge 2 3  | returns false
+```
 
 ```
 filter (<x: mod x 2>) [1 2 3 4]  | returns [1 3]
@@ -421,6 +429,15 @@ filter (<x: mod x 2>) [1 2 3 4]  | returns [1 3]
 ### get
 
 Retrieve a record field
+
+### gt
+
+Returns true if the first value is greater than the second
+
+```
+gt 5 3  | returns true
+gt 3 3  | returns false
+```
 
 ```
 get "b" {a: 1, b: 2}  | returns 2
@@ -432,6 +449,32 @@ Return the first item
 
 ```
 hd [10 20 30]  | returns 10
+```
+
+### json
+
+Parses a string as JSON
+
+```
+json "{\"a\": 1}"  | returns {a: 1}
+```
+
+### last
+
+Returns the last element of a list
+
+```
+last [1 2 3]  | returns 3
+```
+
+### le
+
+Returns true if the first value is less than or equal to the second
+
+```
+le 3 5  | returns true
+le 3 3  | returns true
+le 5 3  | returns false
 ```
 
 ### isempty
@@ -450,6 +493,15 @@ Return the length of a list or string
 length [1 2 3]    | returns 3
 length "hello"    | returns 5
 length []         | returns 0
+```
+
+### lt
+
+Returns true if the first value is less than the second
+
+```
+lt 3 5  | returns true
+lt 3 3  | returns false
 ```
 
 ### log
@@ -501,6 +553,15 @@ Multiply two numbers
 mul 4 3  | returns 12
 ```
 
+### ne
+
+Returns true if the two values are not equal
+
+```
+ne 1 2  | returns true
+ne 1 1  | returns false
+```
+
 ### not
 
 Logical NOT that inverts a boolean value
@@ -527,6 +588,14 @@ or false false  | returns false
 or false true   | returns true
 or true false   | returns true
 or true true    | returns true
+```
+
+### print
+
+Outputs a value to the form
+
+```
+print {x: 1, y: 2}  | outputs the record to the form
 ```
 
 ### pow
@@ -568,6 +637,15 @@ Subtract the second number from the first
 
 ```
 sub 5 2  | returns 3
+```
+
+### take
+
+Returns the first n elements of a list
+
+```
+take 2 [1 2 3 4 5]  | returns [1 2]
+take 0 [1 2 3]       | returns []
 ```
 
 ### tl
