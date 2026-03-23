@@ -903,7 +903,8 @@ export class Transformer extends Visitor {
     const err = [];
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        resume([].concat(err1).concat(err2), {key: val1, val: val2});
+        const key = val1 && val1.tag !== undefined ? val1.tag : val1;
+        resume([].concat(err1).concat(err2), {key, val: val2});
       });
     });
   }
