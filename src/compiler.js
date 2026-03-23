@@ -1095,7 +1095,8 @@ export class Transformer extends Visitor {
           const val = recordGet(v1, rk);
           resume(err, val);
         } else {
-          const val = v1[v0];
+          const key = typeof v0 === "object" && v0.tag !== undefined ? v0.tag : v0;
+          const val = v1[key];
           resume(err, val);
         }
       });
