@@ -20,6 +20,106 @@ function newNode(tag, elts) {
 
 const ASYNC = true;
 
+// --- Record key helpers ---
+
+function encodeKey(recordKey) {
+  if (recordKey.kind === "tag") return `tag:${recordKey.name}`;
+  if (recordKey.kind === "string") return `str:${recordKey.value}`;
+  if (recordKey.kind === "number") return `num:${recordKey.value}`;
+  throw new Error("Unknown record key kind: " + JSON.stringify(recordKey));
+}
+
+function makeRecordKey(kind, nameOrValue) {
+  if (kind === "tag") return { kind: "tag", name: nameOrValue };
+  if (kind === "string") return { kind: "string", value: nameOrValue };
+  if (kind === "number") return { kind: "number", value: nameOrValue };
+  throw new Error("Unknown key kind: " + kind);
+}
+
+function classifyRuntimeKey(v) {
+  if (v && typeof v === "object" && v.tag !== undefined && !v.elts) {
+    return makeRecordKey("tag", v.tag);
+  } else if (typeof v === "string") {
+    return makeRecordKey("string", v);
+  } else if (typeof v === "number") {
+    return makeRecordKey("number", v);
+  }
+  return makeRecordKey("tag", String(v));
+}
+
+function createRecord() {
+  return { _type: "record", _entries: new Map() };
+}
+
+function isRecord(val) {
+  return val !== null && typeof val === "object" && val._type === "record";
+}
+
+function recordSet(rec, recordKey, value) {
+  const newRec = createRecord();
+  for (const [k, v] of rec._entries) newRec._entries.set(k, v);
+  newRec._entries.set(encodeKey(recordKey), value);
+  return newRec;
+}
+
+function recordGet(rec, recordKey) {
+  const encoded = encodeKey(recordKey);
+  if (rec._entries.has(encoded)) return rec._entries.get(encoded);
+  if (recordKey.kind === "tag") {
+    const fb = `str:${recordKey.name}`;
+    if (rec._entries.has(fb)) return rec._entries.get(fb);
+  } else if (recordKey.kind === "string") {
+    const fb = `tag:${recordKey.value}`;
+    if (rec._entries.has(fb)) return rec._entries.get(fb);
+  }
+  return undefined;
+}
+
+function recordHas(rec, recordKey) {
+  return recordGet(rec, recordKey) !== undefined;
+}
+
+function recordRemove(rec, recordKey) {
+  const encoded = encodeKey(recordKey);
+  const newRec = createRecord();
+  for (const [k, v] of rec._entries) {
+    if (k !== encoded) newRec._entries.set(k, v);
+  }
+  return newRec;
+}
+
+function recordToPlainObject(rec) {
+  const obj = {};
+  for (const [encodedKey, value] of rec._entries) {
+    const colonIdx = encodedKey.indexOf(":");
+    const baseKey = encodedKey.substring(colonIdx + 1);
+    obj[baseKey] = isRecord(value) ? recordToPlainObject(value) : value;
+  }
+  return obj;
+}
+
+function plainObjectToRecord(obj) {
+  const rec = createRecord();
+  for (const [key, value] of Object.entries(obj)) {
+    rec._entries.set(`tag:${key}`, value);
+  }
+  return rec;
+}
+
+function recordMerge(rec1, rec2) {
+  const newRec = createRecord();
+  const addEntries = (source) => {
+    if (isRecord(source)) {
+      for (const [k, v] of source._entries) newRec._entries.set(k, v);
+    } else if (typeof source === "object" && source !== null) {
+      for (const [k, v] of Object.entries(source)) newRec._entries.set(`tag:${k}`, v);
+    }
+  };
+  addEntries(rec1);
+  addEntries(rec2);
+  return newRec;
+}
+
 class Visitor {
   constructor(code) {
     this.nodePool = code;
@@ -903,7 +1003,7 @@ export class Transformer extends Visitor {
     const err = [];
     this.visit(node.elts[0], options, (err1, val1) => {
       this.visit(node.elts[1], options, (err2, val2) => {
-        const key = val1 && val1.tag !== undefined ? val1.tag : val1;
+        const key = classifyRuntimeKey(val1);
         resume([].concat(err1).concat(err2), {key, val: val2});
       });
     });
@@ -911,23 +1011,18 @@ export class Transformer extends Visitor {
   RECORD(node, options, resume) {
     let err = [];
     if (node.elts.length === 0) {
-      resume(err, {});
+      resume(err, createRecord());
     } else {
       let len = 0;
       const ndx = [];
       for (let elt of node.elts) {
         this.visit(elt, options, (e0, v0) => {
-          console.log(
-            "RECORD()",
-            "v0=" + JSON.stringify(v0, null, 2),
-          );
           err = err.concat(e0);
           ndx[elt] = v0;
           if (++len === node.elts.length) {
-            // This is a little trickery to restore the original order of the
-            // fields, given that they may have been reordered due to the nodes
-            // being visited asynchronously.
-            const val = node.elts.reduce((acc, elt) => ({...acc, [ndx[elt].key]: ndx[elt].val}), {});
+            const val = node.elts.reduce((acc, elt) => {
+              return recordSet(acc, ndx[elt].key, ndx[elt].val);
+            }, createRecord());
             resume(err, val);
           }
         });
@@ -995,8 +1090,14 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [].concat(e0).concat(e1);
-        const val = v1[v0];
-        resume(err, val);
+        if (isRecord(v1)) {
+          const rk = classifyRuntimeKey(v0);
+          const val = recordGet(v1, rk);
+          resume(err, val);
+        } else {
+          const val = v1[v0];
+          resume(err, val);
+        }
       });
     });
   }
@@ -1008,7 +1109,12 @@ export class Transformer extends Visitor {
   LENGTH(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = e0;
-      const val = (Array.isArray(v0) || typeof v0 === 'string') ? v0.length : 0;
+      let val;
+      if (isRecord(v0)) {
+        val = v0._entries.size;
+      } else {
+        val = (Array.isArray(v0) || typeof v0 === 'string') ? v0.length : 0;
+      }
       resume(err, val);
     });
   }
@@ -1021,11 +1127,8 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const data = options.data || {};
       const err = e0;
-      const val = v0;
-      resume(err, {
-        ...val,
-        ...data,  // External data overrides internal data.
-      });
+      const val = recordMerge(v0, data);
+      resume(err, val);
     });
   }
   PAREN(node, options, resume) {
@@ -1189,10 +1292,18 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [...e0, ...e1];
-        assert(typeof v0 === "string", "Type Error: expected v0 to be a string.");
-        assert(typeof v1 === "object", "Type Error: expected v1 to be an object. Got " + JSON.stringify(v1));
-        const val = v1[v0];
-        resume(err, val);
+        if (isRecord(v1)) {
+          const rk = classifyRuntimeKey(v0);
+          const val = recordGet(v1, rk);
+          resume(err, val);
+        } else if (Array.isArray(v1) && typeof v0 === "number") {
+          resume(err, v1[v0]);
+        } else if (typeof v1 === "object" && v1 !== null) {
+          const key = typeof v0 === "object" && v0.tag !== undefined ? v0.tag : v0;
+          resume(err, v1[key]);
+        } else {
+          resume([...err, "Type Error: expected v1 to be a record or object."], undefined);
+        }
       });
     });
   }
@@ -1201,13 +1312,16 @@ export class Transformer extends Visitor {
       this.visit(node.elts[1], options, (e1, v1) => {
         this.visit(node.elts[2], options, (e2, v2) => {
           const err = [...e0, ...e1, ...e2];
-          assert(typeof v0 === "string", "Type Error: expected v0 to be a string.");
-          assert(typeof v2 === "object", "Type Error: expected v2 to be an object.");
-          const val = {
-            ...v2,
-            [v0]: v1,
-          };
-          resume(err, val);
+          if (isRecord(v2)) {
+            const rk = classifyRuntimeKey(v0);
+            const val = recordSet(v2, rk, v1);
+            resume(err, val);
+          } else if (typeof v2 === "object" && v2 !== null) {
+            const key = typeof v0 === "object" && v0.tag !== undefined ? v0.tag : v0;
+            resume(err, { ...v2, [key]: v1 });
+          } else {
+            resume([...err, "Type Error: expected v2 to be a record or object."], undefined);
+          }
         });
       });
     });
@@ -1217,9 +1331,15 @@ export class Transformer extends Visitor {
       this.visit(node.elts[1], options, (e1, v1) => {
         const err = [...e0, ...e1];
         assert(typeof v0 === "number", "Type Error: expected v0 to be a number. Got " + (typeof v0));
-        assert(typeof v1 === "object", "Type Error: expected v1 to be an object. Got " + (typeof v1));
-        const val = v1[v0];
-        resume(err, val);
+        if (isRecord(v1)) {
+          const rk = makeRecordKey("number", v0);
+          const val = recordGet(v1, rk);
+          resume(err, val);
+        } else {
+          assert(typeof v1 === "object", "Type Error: expected v1 to be an object. Got " + (typeof v1));
+          const val = v1[v0];
+          resume(err, val);
+        }
       });
     });
   }
@@ -1227,7 +1347,7 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = e0;
       const val = {
-        print: v0,
+        print: isRecord(v0) ? recordToPlainObject(v0) : v0,
       };
       resume(err, val);
     })
@@ -1378,7 +1498,10 @@ export class Transformer extends Visitor {
         const err = [].concat(e0).concat(e1);
         try {
           let val;
-          if (v0 !== null && v1 !== null && typeof v0 === "object" && typeof v1 === "object" && v0.tag !== undefined && v1.tag !== undefined && !v0.elts && !v1.elts) {
+          if (isRecord(v0) && isRecord(v1)) {
+            val = v0._entries.size === v1._entries.size &&
+              [...v0._entries].every(([k, v]) => v1._entries.has(k) && v1._entries.get(k) === v);
+          } else if (v0 !== null && v1 !== null && typeof v0 === "object" && typeof v1 === "object" && v0.tag !== undefined && v1.tag !== undefined && !v0.elts && !v1.elts) {
             val = v0.tag === v1.tag;
           } else {
             val = v0 === v1;
@@ -1592,9 +1715,9 @@ export class Renderer {
     this.data = data;
   }
   render(options, resume) {
-    // Do some rendering here.
+    // Convert internal record representation to plain JSON-compatible objects.
     const err = [];
-    const val = this.data;
+    const val = isRecord(this.data) ? recordToPlainObject(this.data) : this.data;
     resume(err, val);
   }
 }

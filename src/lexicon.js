@@ -12,16 +12,16 @@ export const lexicon = {
     "name": "GET",
     "cls": "function",
     "arity": 2,
-    "type": "<integer record|list: any>",
-    "description": "Retrieves a value from a record or list by key or index."
+    "type": "<tag|string|number record: any>",
+    "description": "Retrieves a value from a record by key (tag, string, or number)."
   },
   "set": {
     "tk": 1,
     "name": "SET",
     "cls": "function",
     "arity": 3,
-    "type": "<integer any record|list: record|list>",
-    "description": "Returns a new record or list with the specified key or index updated."
+    "type": "<tag|string|number any record: record>",
+    "description": "Returns a new record with the specified key updated."
   },
   "nth": {
     "tk": 1,
@@ -116,8 +116,8 @@ export const lexicon = {
     "name": "LENGTH",
     "cls": "function",
     "arity": 1,
-    "type": "<list|string: integer>",
-    "description": "Returns the length of a list or string."
+    "type": "<list|string|record: integer>",
+    "description": "Returns the length of a list, string, or record."
   },
   "concat": {
     "tk": 1,
