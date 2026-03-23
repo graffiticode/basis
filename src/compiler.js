@@ -88,14 +88,31 @@ function recordRemove(rec, recordKey) {
   return newRec;
 }
 
-function recordToPlainObject(rec) {
-  const obj = {};
-  for (const [encodedKey, value] of rec._entries) {
-    const colonIdx = encodedKey.indexOf(":");
-    const baseKey = encodedKey.substring(colonIdx + 1);
-    obj[baseKey] = isRecord(value) ? recordToPlainObject(value) : value;
+function deepConvertRecords(val) {
+  if (isRecord(val)) {
+    const obj = {};
+    for (const [encodedKey, value] of val._entries) {
+      const colonIdx = encodedKey.indexOf(":");
+      const baseKey = encodedKey.substring(colonIdx + 1);
+      obj[baseKey] = deepConvertRecords(value);
+    }
+    return obj;
   }
-  return obj;
+  if (Array.isArray(val)) {
+    return val.map(deepConvertRecords);
+  }
+  if (val !== null && typeof val === "object" && val.tag === undefined) {
+    const obj = {};
+    for (const [k, v] of Object.entries(val)) {
+      obj[k] = deepConvertRecords(v);
+    }
+    return obj;
+  }
+  return val;
+}
+
+function recordToPlainObject(rec) {
+  return deepConvertRecords(rec);
 }
 
 function plainObjectToRecord(obj) {
@@ -1718,7 +1735,7 @@ export class Renderer {
   render(options, resume) {
     // Convert internal record representation to plain JSON-compatible objects.
     const err = [];
-    const val = isRecord(this.data) ? recordToPlainObject(this.data) : this.data;
+    const val = deepConvertRecords(this.data);
     resume(err, val);
   }
 }
