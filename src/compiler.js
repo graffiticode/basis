@@ -96,6 +96,13 @@ function deepConvertRecords(val) {
       const baseKey = encodedKey.substring(colonIdx + 1);
       obj[baseKey] = deepConvertRecords(value);
     }
+    // Also pick up any plain properties added by language transformers
+    // (e.g. via {...record, text: v0}) that aren't part of the record internals.
+    for (const [k, v] of Object.entries(val)) {
+      if (k !== '_type' && k !== '_entries') {
+        obj[k] = deepConvertRecords(v);
+      }
+    }
     return obj;
   }
   if (Array.isArray(val)) {
