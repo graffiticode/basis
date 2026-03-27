@@ -330,7 +330,14 @@ export class Checker extends Visitor {
       resume(err, val);
     });
   }
-  CRYPT(node, options, resume) {
+  GET_PRIVATE_VAR(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [];
+      const val = node;
+      resume(err, val);
+    });
+  }
+  GET_PUBLIC_VAR(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
       const val = node;
@@ -965,10 +972,17 @@ export class Transformer extends Visitor {
       resume(err, val);
     });
   }
-  CRYPT(node, options, resume) {
+  GET_PRIVATE_VAR(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
       const val = decrypt(v0);
+      resume(err, val);
+    });
+  }
+  GET_PUBLIC_VAR(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [];
+      const val = v0;
       resume(err, val);
     });
   }

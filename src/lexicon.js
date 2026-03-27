@@ -320,12 +320,20 @@ export const lexicon = {
     "type": "<integer list: list>",
     "description": "Returns the first n elements of a list."
   },
-  "crypt": {
+  "get-private-var": {
     "tk": 1,
-    "name": "CRYPT",
+    "name": "GET_PRIVATE_VAR",
     "cls": "function",
     "arity": 1,
     "type": "<string: string>",
-    "description": "Encrypts a string at parse time and decrypts at compile time."
+    "description": "Resolves a variable by name, encrypted at parse time and decrypted at compile time."
+  },
+  "get-public-var": {
+    "tk": 1,
+    "name": "GET_PUBLIC_VAR",
+    "cls": "function",
+    "arity": 1,
+    "type": "<string: string>",
+    "description": "Resolves a variable by name as plain text."
   }
 };

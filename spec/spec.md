@@ -1,8 +1,8 @@
 # Graffiticode Core Language Specification
 
 ```
-Version: 0.1.4
-Date: 2026-03-20
+Version: 0.1.5
+Date: 2026-03-26
 ```
 
 # Introduction
@@ -272,6 +272,8 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `filter` | `<function list: list>` | Keeps items matching predicate |
 | `ge` | `<number number: bool>` | Returns true if first value is greater than or equal to second |
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
+| `get-private-var` | `<string: string>` | Resolves a named variable, encrypted at parse time and decrypted at compile time |
+| `get-public-var` | `<string: string>` | Resolves a named variable as plain text |
 | `gt` | `<number number: bool>` | Returns true if first value is greater than second |
 | `hd` | `<list: any>` | First item of list |
 | `isempty` | `<list: bool>` | Returns true if the list is empty |
@@ -429,6 +431,26 @@ filter (<x: mod x 2>) [1 2 3 4]  | returns [1 3]
 ### get
 
 Retrieve a record field
+
+### get-private-var
+
+Resolves a named variable, encrypted at parse time and decrypted at compile time. Used for secrets that should not appear as plain text in the stored AST.
+
+```
+{secret: get-private-var "learnosity:secret"}  | encrypted in AST, decrypted at compile time
+```
+
+The parser calls back to the invoker to resolve the variable name and encrypt the value. The compiler decrypts it at runtime. Requires `GRAFFITICODE_SECRET_KEY` environment variable on both parser and compiler sides. Without the key, the value passes through unchanged.
+
+### get-public-var
+
+Resolves a named variable as plain text. Used for non-sensitive values like item IDs that the compiler needs at runtime.
+
+```
+{itemId: get-public-var "itemid"}  | resolved at parse time, plain text in AST
+```
+
+The parser calls back to the invoker to resolve the variable name. The value is stored as-is in the AST.
 
 ### gt
 
