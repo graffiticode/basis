@@ -319,5 +319,13 @@ export const lexicon = {
     "arity": 2,
     "type": "<integer list: list>",
     "description": "Returns the first n elements of a list."
+  },
+  "crypt": {
+    "tk": 1,
+    "name": "CRYPT",
+    "cls": "function",
+    "arity": 1,
+    "type": "<string: string>",
+    "description": "Encrypts a string at parse time and decrypts at compile time."
   }
 };

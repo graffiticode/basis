@@ -1,6 +1,17 @@
 /* Copyright (c) 2021, ARTCOMPILER INC */
 import {assert, message, messages, reserveCodeRange} from "./share.js";
 import Decimal from 'decimal.js';
+import crypto from 'crypto';
+
+function decrypt(ciphertext) {
+  const key = process.env.GRAFFITICODE_SECRET_KEY;
+  if (!key) return ciphertext;
+  const [ivHex, encHex] = ciphertext.split(':');
+  if (!ivHex || !encHex) return ciphertext;
+  const keyHash = crypto.createHash('sha256').update(key).digest();
+  const decipher = crypto.createDecipheriv('aes-256-cbc', keyHash, Buffer.from(ivHex, 'hex'));
+  return decipher.update(Buffer.from(encHex, 'hex')) + decipher.final('utf8');
+}
 reserveCodeRange(1000, 1999, "compile");
 messages[1001] = "Node ID %1 not found in pool.";
 messages[1002] = "Invalid tag in node with Node ID %1.";
@@ -314,6 +325,13 @@ export class Checker extends Visitor {
   JSON(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       assert(v0.tag === "STR", JSON.stringify(v0, null, 2));
+      const err = [];
+      const val = node;
+      resume(err, val);
+    });
+  }
+  CRYPT(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
       const val = node;
       resume(err, val);
@@ -944,6 +962,13 @@ export class Transformer extends Visitor {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
       const val = JSON.parse(v0);
+      resume(err, val);
+    });
+  }
+  CRYPT(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = [];
+      const val = decrypt(v0);
       resume(err, val);
     });
   }
