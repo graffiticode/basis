@@ -24,7 +24,7 @@ All stages are in `src/compiler.js`:
 ### Key Files
 
 - `src/compiler.js` - Core compiler with Visitor base class and all stages
-- `src/lexicon.js` - Builtin function definitions (28 functions with types/descriptions)
+- `src/lexicon.js` - Builtin function definitions (44 functions with types/descriptions)
 - `src/share.js` - Shared utilities, error codes, assertion helpers
 - `index.js` - Exports: Checker, Transformer, Renderer, Compiler, lexicon
 - `spec/spec.md` - Language specification (source of truth for syntax/semantics)

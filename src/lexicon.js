@@ -332,16 +332,16 @@ export const lexicon = {
     "tk": 1,
     "name": "GET_VAL_PRIVATE",
     "cls": "function",
-    "arity": 2,
-    "type": "<string string: string>",
+    "arity": 1,
+    "type": "<string: string>",
     "description": "Resolves a variable by name, encrypted at parse time and decrypted at compile time."
   },
   "get-val-public": {
     "tk": 1,
     "name": "GET_VAL_PUBLIC",
     "cls": "function",
-    "arity": 2,
-    "type": "<string string: string>",
+    "arity": 1,
+    "type": "<string: string>",
     "description": "Resolves a variable by name as plain text."
   },
   "set-var": {
