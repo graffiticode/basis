@@ -320,20 +320,36 @@ export const lexicon = {
     "type": "<integer list: list>",
     "description": "Returns the first n elements of a list."
   },
-  "get-private-var": {
+  "get-var": {
     "tk": 1,
-    "name": "GET_PRIVATE_VAR",
+    "name": "GET_VAR",
     "cls": "function",
     "arity": 1,
-    "type": "<string: string>",
+    "type": "<string: any>",
+    "description": "Gets the value of a named variable."
+  },
+  "get-val-private": {
+    "tk": 1,
+    "name": "GET_VAL_PRIVATE",
+    "cls": "function",
+    "arity": 2,
+    "type": "<string string: string>",
     "description": "Resolves a variable by name, encrypted at parse time and decrypted at compile time."
   },
-  "get-public-var": {
+  "get-val-public": {
     "tk": 1,
-    "name": "GET_PUBLIC_VAR",
+    "name": "GET_VAL_PUBLIC",
     "cls": "function",
-    "arity": 1,
-    "type": "<string: string>",
+    "arity": 2,
+    "type": "<string string: string>",
     "description": "Resolves a variable by name as plain text."
+  },
+  "set-var": {
+    "tk": 1,
+    "name": "SET_VAR",
+    "cls": "function",
+    "arity": 2,
+    "type": "<string any: any>",
+    "description": "Sets a named variable to a value."
   }
 };

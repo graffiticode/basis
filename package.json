@@ -1,7 +1,7 @@
 {
   "name": "@graffiticode/basis",
   "type": "module",
-  "version": "1.8.3",
+  "version": "1.9.0",
   "description": "The basis library for creating Graffiticode languages",
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,7 @@
     "spec-md": "^3.1.0"
   },
   "dependencies": {
-    "@graffiticode/parser": "^1.5.3",
+    "@graffiticode/parser": "^1.5.12",
     "decimal.js": "^10.5.0"
   }
 }

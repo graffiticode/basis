@@ -267,18 +267,15 @@ export class Checker extends Visitor {
   EXPRS(node, options, resume) {
     let err = [];
     let val = [];
+    options.SYNC = true;
     for (let elt of node.elts) {
       this.visit(elt, options, (e0, v0) => {
         err = err.concat(e0);
         val = val.concat(v0);
-        if (val.length === node.elts.length) {
-          resume(err, val);
-        }
       });
     }
-    if (node.elts.length === 0) {
-      resume(err, val);
-    }
+    options.SYNC = false;
+    resume(err, val);
   }
   NUM(node, options, resume) {
     const err = [];
@@ -330,18 +327,34 @@ export class Checker extends Visitor {
       resume(err, val);
     });
   }
-  GET_PRIVATE_VAR(node, options, resume) {
+  GET_VAR(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
       const val = node;
       resume(err, val);
     });
   }
-  GET_PUBLIC_VAR(node, options, resume) {
+  GET_VAL_PRIVATE(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
+      const err = node.elts[1] ? [] : [error("get-val-private requires a resolved value.", node)];
       const val = node;
       resume(err, val);
+    });
+  }
+  GET_VAL_PUBLIC(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const err = node.elts[1] ? [] : [error("get-val-public requires a resolved value.", node)];
+      const val = node;
+      resume(err, val);
+    });
+  }
+  SET_VAR(node, options, resume) {
+    this.visit(node.elts[0], options, (err1, val1) => {
+      this.visit(node.elts[1], options, (err2, val2) => {
+        const err = [].concat(err1).concat(err2);
+        const val = node;
+        resume(err, val);
+      });
     });
   }
   CONCAT(node, options, resume) {
@@ -972,18 +985,34 @@ export class Transformer extends Visitor {
       resume(err, val);
     });
   }
-  GET_PRIVATE_VAR(node, options, resume) {
+  GET_VAR(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
       const err = [];
-      const val = decrypt(v0);
+      const val = options[v0];
       resume(err, val);
     });
   }
-  GET_PUBLIC_VAR(node, options, resume) {
+  GET_VAL_PRIVATE(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const err = [];
-      const val = v0;
-      resume(err, val);
+      this.visit(node.elts[1], options, (e1, v1) => {
+        resume([], decrypt(v1));
+      });
+    });
+  }
+  GET_VAL_PUBLIC(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        resume([], v1);
+      });
+    });
+  }
+  SET_VAR(node, options, resume) {
+    this.visit(node.elts[0], options, (e0, v0) => {
+      this.visit(node.elts[1], options, (e1, v1) => {
+        const err = [...e0, ...e1];
+        options[v0] = v1;
+        resume(err, v1);
+      });
     });
   }
   CONCAT(node, options, resume) {
