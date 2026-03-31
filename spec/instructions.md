@@ -77,7 +77,12 @@ case x of
 end
 ```
 
-Supports literal values, tag values, and the wildcard `_`.
+Supports:
+- Literal values
+- Tag values (matched by identity)
+- Tuple destructuring: `(a, b)`
+- Record destructuring: `{ name, age }`
+- Wildcard `_`
 
 ## Record Shorthand
 
@@ -109,6 +114,9 @@ This is equivalent to `{x: 1, y: 2, z: 3}`.
 | `filter` | `<function list: list>` | Keeps items matching predicate |
 | `ge` | `<number number: bool>` | Greater than or equal |
 | `get` | `<string record: any>` | Retrieves a value from a record by key |
+| `get-val-private` | `<string: string>` | Resolves a named variable, encrypted at parse time and decrypted at compile time |
+| `get-val-public` | `<string: string>` | Resolves a named variable as plain text |
+| `get-var` | `<string: any>` | Gets the value of a named variable |
 | `gt` | `<number number: bool>` | Greater than |
 | `hd` | `<list: any>` | First item of list |
 | `isempty` | `<list: bool>` | Returns true if the list is empty |
@@ -132,6 +140,7 @@ This is equivalent to `{x: 1, y: 2, z: 3}`.
 | `range` | `<number number number: list>` | Generates a range list (start, end, step) |
 | `reduce` | `<function any list: any>` | Combines list using a reducer with initial value |
 | `set` | `<string any record: record>` | Returns a new record with a key set to a value |
+| `set-var` | `<string any: any>` | Sets a named variable to a value |
 | `sub` | `<number number: number>` | Subtracts numbers |
 | `take` | `<integer list: list>` | Returns the first n elements of a list |
 | `tl` | `<list: list>` | All items except first |
