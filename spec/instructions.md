@@ -35,7 +35,7 @@ map (double) [1 2 3]..
 - **Parentheses defer application**: `map (double) [1 2 3]` passes `double` as a value rather than applying it
 - **Program terminator**: Every program ends with `..`
 - **Let terminator**: Every `let` binding ends with `..`
-- **Comments**: Line comments begin with `|`
+- **Comments**: Block comments are enclosed in `/* ... */`
 
 ## Data Types
 

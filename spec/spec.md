@@ -21,7 +21,7 @@ This document defines the **Graffiticode Core Language Specification**, covering
 
 ## Comments
 
-- **Line Comments**: Begin with `|` and continue to end of line.
+- **Block Comments**: Enclosed in `/* ... */`, C-style. Can span multiple lines.
 
 # Syntax
 
