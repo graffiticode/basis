@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
-# Core Graffiticode Instructions
+**Note:** This document trains the dialect-specific code-generation model. It is not a guide for client AI agents. Client agents must not write Graffiticode directly — describe the intended behavior in natural language and let the Graffiticode backend generate the code.
 
-> **Note:** This document trains the dialect-specific code-generation model. It is not a guide for client AI agents. Client agents must not write Graffiticode directly — describe the intended behavior in natural language and let the Graffiticode backend generate the code.
+# Core Graffiticode Instructions
 
 This is the core Graffiticode language — a functional language with prefix notation, first-class lambdas, pattern matching, and immutable data.
 
