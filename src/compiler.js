@@ -1218,10 +1218,13 @@ export class Transformer extends Visitor {
   }
   DATA(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const data = options.data || {};
-      const err = e0;
-      const val = recordMerge(v0, data);
-      resume(err, val);
+      const upstream = options.data;
+      const hasUpstream = upstream != null
+        && (isRecord(upstream) ? upstream._entries.size > 0
+            : typeof upstream === "object" ? Object.keys(upstream).length > 0
+            : true);
+      const val = hasUpstream ? recordMerge(v0, upstream) : v0;
+      resume(e0, val);
     });
   }
   PAREN(node, options, resume) {
