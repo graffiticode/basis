@@ -108,7 +108,7 @@ This is equivalent to `{x: 1, y: 2, z: 3}`.
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
 | `concat` | `<string\|list string\|list: string\|list>` | Concatenates two strings or two lists |
 | `cons` | `<any list: list>` | Prepends an element to a list |
-| `data` | `<record: record>` | Returns upstream task data, or the argument if none |
+| `data` | `<record: record>` | Returns upstream task data, or the argument if none. Argument may be a record literal (e.g. `data {x: 1}`) or `use "<lang>"` to declare the upstream language |
 | `div` | `<number number: number>` | Divides numbers |
 | `drop` | `<integer list: list>` | Returns a list with the first n elements removed |
 | `eq` | `<number number: bool>` | Numeric equality |
@@ -146,6 +146,7 @@ This is equivalent to `{x: 1, y: 2, z: 3}`.
 | `sub` | `<number number: number>` | Subtracts numbers |
 | `take` | `<integer list: list>` | Returns the first n elements of a list |
 | `tl` | `<list: list>` | All items except first |
+| `use` | `<string: record>` | Inside `data`, declares the upstream language whose output is expected (e.g. `data use "0166"`). Evaluates to `{}` when no upstream is bound |
 
 ## Examples
 
