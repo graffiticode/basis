@@ -314,5 +314,75 @@ describe("Existing functionality", () => {
       expect(strNode.tag).toBe("STR");
       expect(strNode.elts[0]).toBe("0166");
     });
+
+    // Simulates what the console walker does: replaces the lang id in
+    // USE's STR child with a JSON-stringified schema.
+    async function compileWithSchema(src, schema, data) {
+      const nodePool = await parser.parse(0, src, lexicon);
+      const useNode = Object.values(nodePool).find(
+        n => typeof n === "object" && n && n.tag === "USE"
+      );
+      const strNid = useNode.elts[0];
+      nodePool[strNid].elts[0] = JSON.stringify(schema);
+      return new Promise((resolve, reject) => {
+        const compiler = new Compiler({
+          langID: "0",
+          version: "v0.0.0",
+          Checker,
+          Transformer,
+          Renderer,
+        });
+        compiler.compile(nodePool, data || {}, {}, (err, val) => {
+          if (err && err.length > 0) reject(err);
+          else resolve(val);
+        });
+      });
+    }
+
+    test('data use "<schema>" with conforming upstream passes validation', async () => {
+      const schema = {
+        $id: "test-conform",
+        type: "object",
+        properties: { x: { type: "number" } },
+        required: ["x"],
+      };
+      const result = await compileWithSchema('data use "0166"..', schema, { x: 42 });
+      expect(result).toEqual({ x: 42 });
+    });
+
+    test('data use "<schema>" with non-conforming upstream fails with schema error', async () => {
+      const schema = {
+        $id: "test-fail",
+        type: "object",
+        properties: { x: { type: "number" } },
+        required: ["x"],
+      };
+      await expect(compileWithSchema('data use "0166"..', schema, { y: "wrong" }))
+        .rejects.toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            message: expect.stringContaining("upstream data does not match"),
+          }),
+        ]));
+    });
+
+    test('data use "<schema>" with no upstream skips validation, returns {}', async () => {
+      // Schema would reject {} (required field), but no upstream means
+      // validation is skipped and the {} fallback wins.
+      const schema = {
+        $id: "test-skip",
+        type: "object",
+        properties: { x: { type: "number" } },
+        required: ["x"],
+      };
+      const result = await compileWithSchema('data use "0166"..', schema);
+      expect(result).toEqual({});
+    });
+
+    test('data use "<lang-id>" (pre-walker form) with no upstream returns {} gracefully', async () => {
+      // Bare lang id never went through the walker. USE shouldn't crash;
+      // schema is simply unattached and DATA falls through.
+      const result = await compile('data use "0166"..');
+      expect(result).toEqual({});
+    });
   });
 });

@@ -2,6 +2,7 @@
 import {assert, message, messages, reserveCodeRange} from "./share.js";
 import Decimal from 'decimal.js';
 import crypto from 'crypto';
+import { validateAgainstSchema } from "./schema-validator.js";
 
 function decrypt(ciphertext) {
   const key = process.env.GRAFFITICODE_SECRET_KEY;
@@ -61,6 +62,11 @@ function classifyRuntimeKey(v) {
 function createRecord() {
   return { _type: "record", _entries: new Map() };
 }
+
+// Hidden metadata key used by USE to attach the language schema to the
+// record it returns. A Symbol keeps it out of Object.entries / JSON output
+// so deepConvertRecords (and downstream rendering) skip it automatically.
+const SCHEMA_SYM = Symbol.for("gcSchema");
 
 function isRecord(val) {
   return val !== null && typeof val === "object" && val._type === "record";
@@ -1228,12 +1234,39 @@ export class Transformer extends Visitor {
         && (isRecord(upstream) ? upstream._entries.size > 0
             : typeof upstream === "object" ? Object.keys(upstream).length > 0
             : true);
+      // When v0 came from `use`, it carries the language schema on a
+      // hidden Symbol key. Validate the upstream against it; skip when
+      // no upstream is bound (the `{}` fallback case).
+      const schema = isRecord(v0) ? v0[SCHEMA_SYM] : null;
+      if (hasUpstream && schema) {
+        const plain = isRecord(upstream) ? recordToPlainObject(upstream) : upstream;
+        const errs = validateAgainstSchema(plain, schema);
+        if (errs.length > 0) {
+          resume([].concat(e0, errs), null);
+          return;
+        }
+      }
       const val = hasUpstream ? recordMerge(v0, upstream) : v0;
       resume(e0, val);
     });
   }
   USE(node, options, resume) {
-    resume([], createRecord());
+    // At write time the console walker rewrites the STR child to hold the
+    // JSON-stringified language schema. Parse it back and tag the empty
+    // record we return so DATA can validate the upstream against it. If
+    // the STR still holds a bare lang id (pre-walker code path), fall
+    // through silently — no schema, no validation.
+    this.visit(node.elts[0], options, (e0, v0) => {
+      const rec = createRecord();
+      if (typeof v0 === "string" && v0.length > 0 && v0.charCodeAt(0) === 0x7b /* '{' */) {
+        try {
+          rec[SCHEMA_SYM] = JSON.parse(v0);
+        } catch (_) {
+          // Looked like JSON but wasn't parseable — leave rec untagged.
+        }
+      }
+      resume(e0, rec);
+    });
   }
   PAREN(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
