@@ -105,13 +105,42 @@ Errors are propagated as a list of objects with `message`, `from`, and `to` fiel
 
 For agents, the discovery flow is:
 
-1. `list_languages(search, domain)` — match a keyword or brand. Optional `domain` filter narrows to a product family (`questioncompiler`, `embedsheet`, `diagramcompiler`, …).
+1. `list_languages(search, domain)` — match a keyword or brand. Optional `domain` filter narrows to a product family (`questioncompiler`, `embedsheet`, `diagramcompiler`, …). The catalog is built from each dialect's `scope.json` (see below).
 2. `get_language_info(language)` — read the dialect's `authoring_guide` summary and example prompts. Most requests can be answered from this alone.
 3. If you need deeper reference (corner cases, vocabulary cues, item-type docs), read the dialect's `usage-guide.md` resource.
 4. Call `create_item(language, description)` with a natural-language description. The dialect's backend generates the Graffiticode source.
 5. To iterate: `update_item(item_id, modification)`.
 
 For humans authoring directly, the same dialect's usage guide lists the vocabulary and example prompts. There is no global "do everything" dialect — the right one is whichever guide reads like it was written for your task.
+
+## `scope.json` — the dialect's routing descriptor
+
+Every dialect publishes a short `scope.json` at `https://l<id>.graffiticode.org/scope.json`. It is the single source of truth for **routing decisions**: which dialect handles a given request, and which doesn't. It does **not** describe how to author the dialect — `language-info.json` and `usage-guide.md` cover that, downstream of the routing decision.
+
+```json
+{
+  "id": "0158",
+  "summary": "Authors Learnosity-compatible assessment items from natural-language descriptions.",
+  "in_scope": [
+    "Multiple-choice (MCQ) items",
+    "Spreadsheet-based assessment items",
+    "Concept-web assessment items",
+    "..."
+  ],
+  "out_of_scope": [
+    "Activity-level assembly (timed tests, sections, branching)",
+    "Delivery configuration",
+    "Learner-side analytics",
+    "..."
+  ]
+}
+```
+
+Required fields: `id`, `summary`, `in_scope` (array of capability strings). Optional but recommended: `out_of_scope` (array of strings naming what the dialect explicitly does NOT cover).
+
+**`in_scope` describes user-visible capabilities, not implementation.** If L0158 supports spreadsheet questions through L0166 composition, the `in_scope` entry is "Spreadsheet-based assessment items" — not "hosts L0166 via custom + data use". How the dialect implements that capability is its own concern (lives in `instructions.md` and training examples).
+
+The console catalog and the reactive language router read every dialect's `scope.json` to build the routing catalog. The fetcher caches with a TTL; restart or wait out the cache after editing.
 
 ## Out of scope
 
