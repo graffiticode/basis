@@ -264,7 +264,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `apply` | `<function list: any>` | Applies a function to a list of arguments |
 | `concat` | `<string|list string|list: string|list>` | Concatenates two strings or two lists |
 | `cons` | `<any list: list>` | Prepends an element to the front of a list |
-| `data` | `<record: record>` | Returns upstream task data, or the argument if no input exists |
+| `data` | `<record: record>` | Returns upstream task data, or the argument if no input exists. Argument may be a record literal (e.g. `data {x: 1}`) or `use "<lang>"` to declare the upstream language |
 | `div` | `<number number: number>` | Divides numbers |
 | `drop` | `<integer list: list>` | Returns a list with the first n elements removed |
 | `eq` | `<number number: bool>` | Numeric equality |
@@ -302,6 +302,7 @@ This approach draws inspiration from **Model-View-Update** (MVU) architectures, 
 | `sub` | `<number number: number>` | Subtracts numbers |
 | `take` | `<integer list: list>` | Returns the first n elements of a list |
 | `tl` | `<list: list>` | All items except first |
+| `use` | `<string: record>` | Inside `data`, declares the upstream language whose output is expected (e.g. `data use "0166"`). Evaluates to `{}` when no upstream is bound |
 
 ### add
 
@@ -359,10 +360,11 @@ cons 0 []     | returns [0]
 
 ### data
 
-Returns the data from the upstream task, or the argument value if no input exists
+Returns the data from the upstream task, or the argument value if no input exists. `data` is arity-1; its argument is either a record literal supplying defaults, or `use "<lang>"` declaring the language of the expected upstream. The two forms are alternatives — `data` takes exactly one argument.
 
 ```
-data {x: 1, y: 2}  | returns {x: 1, y: 2} if no upstream input
+data {x: 1, y: 2}    | returns {x: 1, y: 2} when no upstream is bound; otherwise returns the upstream merged onto the defaults
+data use "0166"      | declares L0166 as the upstream language; returns {} when no upstream is bound
 ```
 
 ### div
@@ -694,6 +696,14 @@ Return all but the first item
 
 ```
 tl [10 20 30]  | returns [20 30]
+```
+
+### use
+
+Declares the language of the upstream task expected by `data`. Used only inside `data` (e.g. `data use "0166"`); the argument is a language id string. Evaluates to `{}` when no upstream is bound, so `data use "<lang>"` falls back to the empty record. Consumers (e.g. the console) read this annotation at write time to drive composition, fetching `L<lang>/schema.json` and inlining the schema on the `use` node.
+
+```
+data use "0166"  | declares L0166 upstream; returns the upstream record at runtime, or {} if none
 ```
 
 # Program Examples

@@ -55,8 +55,8 @@ document.addEventListener("DOMContentLoaded", function () {
 <header>
 <h1>Graffiticode Core Language Specification</h1>
 <section id="intro">
-<pre><code>Version: 0.1.4
-Date: 2026-03-20
+<pre><code>Version: 0.1.5
+Date: 2026-03-26
 </code></pre>
 </section>
 <nav class="spec-toc">
@@ -113,32 +113,37 @@ Date: 2026-03-20
 <li><a href="#sec-filter"><span class="spec-secid">6.2.12</span>filter</a></li>
 <li><a href="#sec-ge"><span class="spec-secid">6.2.13</span>ge</a></li>
 <li><a href="#sec-get"><span class="spec-secid">6.2.14</span>get</a></li>
-<li><a href="#sec-gt"><span class="spec-secid">6.2.15</span>gt</a></li>
-<li><a href="#sec-hd"><span class="spec-secid">6.2.16</span>hd</a></li>
-<li><a href="#sec-json"><span class="spec-secid">6.2.17</span>json</a></li>
-<li><a href="#sec-last"><span class="spec-secid">6.2.18</span>last</a></li>
-<li><a href="#sec-le"><span class="spec-secid">6.2.19</span>le</a></li>
-<li><a href="#sec-isempty"><span class="spec-secid">6.2.20</span>isempty</a></li>
-<li><a href="#sec-length"><span class="spec-secid">6.2.21</span>length</a></li>
-<li><a href="#sec-lt"><span class="spec-secid">6.2.22</span>lt</a></li>
-<li><a href="#sec-log"><span class="spec-secid">6.2.23</span>log</a></li>
-<li><a href="#sec-map"><span class="spec-secid">6.2.24</span>map</a></li>
-<li><a href="#sec-max"><span class="spec-secid">6.2.25</span>max</a></li>
-<li><a href="#sec-min"><span class="spec-secid">6.2.26</span>min</a></li>
-<li><a href="#sec-mod"><span class="spec-secid">6.2.27</span>mod</a></li>
-<li><a href="#sec-mul"><span class="spec-secid">6.2.28</span>mul</a></li>
-<li><a href="#sec-ne"><span class="spec-secid">6.2.29</span>ne</a></li>
-<li><a href="#sec-not"><span class="spec-secid">6.2.30</span>not</a></li>
-<li><a href="#sec-nth"><span class="spec-secid">6.2.31</span>nth</a></li>
-<li><a href="#sec-or"><span class="spec-secid">6.2.32</span>or</a></li>
-<li><a href="#sec-print"><span class="spec-secid">6.2.33</span>print</a></li>
-<li><a href="#sec-pow"><span class="spec-secid">6.2.34</span>pow</a></li>
-<li><a href="#sec-range"><span class="spec-secid">6.2.35</span>range</a></li>
-<li><a href="#sec-reduce"><span class="spec-secid">6.2.36</span>reduce</a></li>
-<li><a href="#sec-set"><span class="spec-secid">6.2.37</span>set</a></li>
-<li><a href="#sec-sub"><span class="spec-secid">6.2.38</span>sub</a></li>
-<li><a href="#sec-take"><span class="spec-secid">6.2.39</span>take</a></li>
-<li><a href="#sec-tl"><span class="spec-secid">6.2.40</span>tl</a></li>
+<li><a href="#sec-get-var"><span class="spec-secid">6.2.15</span>get-var</a></li>
+<li><a href="#sec-get-val-private"><span class="spec-secid">6.2.16</span>get-val-private</a></li>
+<li><a href="#sec-get-val-public"><span class="spec-secid">6.2.17</span>get-val-public</a></li>
+<li><a href="#sec-set-var"><span class="spec-secid">6.2.18</span>set-var</a></li>
+<li><a href="#sec-gt"><span class="spec-secid">6.2.19</span>gt</a></li>
+<li><a href="#sec-hd"><span class="spec-secid">6.2.20</span>hd</a></li>
+<li><a href="#sec-json"><span class="spec-secid">6.2.21</span>json</a></li>
+<li><a href="#sec-last"><span class="spec-secid">6.2.22</span>last</a></li>
+<li><a href="#sec-le"><span class="spec-secid">6.2.23</span>le</a></li>
+<li><a href="#sec-isempty"><span class="spec-secid">6.2.24</span>isempty</a></li>
+<li><a href="#sec-length"><span class="spec-secid">6.2.25</span>length</a></li>
+<li><a href="#sec-lt"><span class="spec-secid">6.2.26</span>lt</a></li>
+<li><a href="#sec-log"><span class="spec-secid">6.2.27</span>log</a></li>
+<li><a href="#sec-map"><span class="spec-secid">6.2.28</span>map</a></li>
+<li><a href="#sec-max"><span class="spec-secid">6.2.29</span>max</a></li>
+<li><a href="#sec-min"><span class="spec-secid">6.2.30</span>min</a></li>
+<li><a href="#sec-mod"><span class="spec-secid">6.2.31</span>mod</a></li>
+<li><a href="#sec-mul"><span class="spec-secid">6.2.32</span>mul</a></li>
+<li><a href="#sec-ne"><span class="spec-secid">6.2.33</span>ne</a></li>
+<li><a href="#sec-not"><span class="spec-secid">6.2.34</span>not</a></li>
+<li><a href="#sec-nth"><span class="spec-secid">6.2.35</span>nth</a></li>
+<li><a href="#sec-or"><span class="spec-secid">6.2.36</span>or</a></li>
+<li><a href="#sec-print"><span class="spec-secid">6.2.37</span>print</a></li>
+<li><a href="#sec-pow"><span class="spec-secid">6.2.38</span>pow</a></li>
+<li><a href="#sec-range"><span class="spec-secid">6.2.39</span>range</a></li>
+<li><a href="#sec-reduce"><span class="spec-secid">6.2.40</span>reduce</a></li>
+<li><a href="#sec-set"><span class="spec-secid">6.2.41</span>set</a></li>
+<li><a href="#sec-sub"><span class="spec-secid">6.2.42</span>sub</a></li>
+<li><a href="#sec-take"><span class="spec-secid">6.2.43</span>take</a></li>
+<li><a href="#sec-tl"><span class="spec-secid">6.2.44</span>tl</a></li>
+<li><a href="#sec-use"><span class="spec-secid">6.2.45</span>use</a></li>
 </ol>
 </li>
 </ol>
@@ -397,7 +402,7 @@ end..
 <tr>
 <td align="left"><code>data</code></td>
 <td align="left"><code>&lt;record: record&gt;</code></td>
-<td align="left">Returns upstream task data, or the argument if no input exists</td>
+<td align="left">Returns upstream task data, or the argument if no input exists. Argument may be a record literal (e.g. <code>data {x: 1}</code>) or <code>use "&lt;lang&gt;"</code> to declare the upstream language</td>
 </tr>
 <tr>
 <td align="left"><code>div</code></td>
@@ -433,6 +438,21 @@ end..
 <td align="left"><code>get</code></td>
 <td align="left"><code>&lt;string record: any&gt;</code></td>
 <td align="left">Retrieves a value from a record by key</td>
+</tr>
+<tr>
+<td align="left"><code>get-var</code></td>
+<td align="left"><code>&lt;string: any&gt;</code></td>
+<td align="left">Gets the value of a named variable</td>
+</tr>
+<tr>
+<td align="left"><code>get-val-private</code></td>
+<td align="left"><code>&lt;string: string&gt;</code></td>
+<td align="left">Resolves a named variable, encrypted at parse time and decrypted at compile time</td>
+</tr>
+<tr>
+<td align="left"><code>get-val-public</code></td>
+<td align="left"><code>&lt;string: string&gt;</code></td>
+<td align="left">Resolves a named variable as plain text</td>
 </tr>
 <tr>
 <td align="left"><code>gt</code></td>
@@ -550,6 +570,11 @@ end..
 <td align="left">Returns a new record with a key set to a value</td>
 </tr>
 <tr>
+<td align="left"><code>set-var</code></td>
+<td align="left"><code>&lt;string any: any&gt;</code></td>
+<td align="left">Sets a named variable to a value</td>
+</tr>
+<tr>
 <td align="left"><code>sub</code></td>
 <td align="left"><code>&lt;number number: number&gt;</code></td>
 <td align="left">Subtracts numbers</td>
@@ -563,6 +588,11 @@ end..
 <td align="left"><code>tl</code></td>
 <td align="left"><code>&lt;list: list&gt;</code></td>
 <td align="left">All items except first</td>
+</tr>
+<tr>
+<td align="left"><code>use</code></td>
+<td align="left"><code>&lt;string: record&gt;</code></td>
+<td align="left">Inside <code>data</code>, declares the upstream language whose output is expected (e.g. <code>data use "0166"</code>). Evaluates to <code>{}</code> when no upstream is bound</td>
 </tr>
 </tbody>
 </table>
@@ -610,8 +640,9 @@ cons 0 []     | returns [0]
 </section>
 <section id="sec-data" secid="6.2.7">
 <h3><span class="spec-secid" title="link to this section"><a href="#sec-data">6.2.7</a></span>data</h3>
-<p>Returns the data from the upstream task, or the argument value if no input exists</p>
-<pre><code>data {x: 1, y: 2}  | returns {x: 1, y: 2} if no upstream input
+<p>Returns the data from the upstream task, or the argument value if no input exists. <code>data</code> is arity-1; its argument is either a record literal supplying defaults, or <code>use "&lt;lang&gt;"</code> declaring the language of the expected upstream. The two forms are alternatives &mdash; <code>data</code> takes exactly one argument.</p>
+<pre><code>data {x: 1, y: 2}    | returns {x: 1, y: 2} when no upstream is bound; otherwise returns the upstream merged onto the defaults
+data use "0166"      | declares L0166 as the upstream language; returns {} when no upstream is bound
 </code></pre>
 </section>
 <section id="sec-div" secid="6.2.8">
@@ -668,8 +699,34 @@ ge 2 3  | returns false
 <h3><span class="spec-secid" title="link to this section"><a href="#sec-get">6.2.14</a></span>get</h3>
 <p>Retrieve a record field</p>
 </section>
-<section id="sec-gt" secid="6.2.15">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-gt">6.2.15</a></span>gt</h3>
+<section id="sec-get-var" secid="6.2.15">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-get-var">6.2.15</a></span>get-var</h3>
+<p>Gets the value of a named variable.</p>
+<pre><code>get-var "count"..
+</code></pre>
+</section>
+<section id="sec-get-val-private" secid="6.2.16">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-get-val-private">6.2.16</a></span>get-val-private</h3>
+<p>Resolves a named variable, encrypted at parse time and decrypted at compile time. Used for secrets that should not appear as plain text in the stored AST.</p>
+<pre><code>{secret: get-val-private "learnosity:secret"}  | encrypted in AST, decrypted at compile time
+</code></pre>
+<p>The parser calls back to the invoker to resolve the variable name and encrypt the value. The compiler decrypts it at runtime. Requires <code>GRAFFITICODE_SECRET_KEY</code> environment variable on both parser and compiler sides. Without the key, the value passes through unchanged.</p>
+</section>
+<section id="sec-get-val-public" secid="6.2.17">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-get-val-public">6.2.17</a></span>get-val-public</h3>
+<p>Resolves a named variable as plain text. Used for non-sensitive values like item IDs that the compiler needs at runtime.</p>
+<pre><code>{itemId: get-val-public "itemid"}  | resolved at parse time, plain text in AST
+</code></pre>
+<p>The parser calls back to the invoker to resolve the variable name. The value is stored as-is in the AST.</p>
+</section>
+<section id="sec-set-var" secid="6.2.18">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-set-var">6.2.18</a></span>set-var</h3>
+<p>Sets a named variable to a value.</p>
+<pre><code>set-var "count" 42..
+</code></pre>
+</section>
+<section id="sec-gt" secid="6.2.19">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-gt">6.2.19</a></span>gt</h3>
 <p>Returns true if the first value is greater than the second</p>
 <pre><code>gt 5 3  | returns true
 gt 3 3  | returns false
@@ -677,112 +734,112 @@ gt 3 3  | returns false
 <pre><code>get "b" {a: 1, b: 2}  | returns 2
 </code></pre>
 </section>
-<section id="sec-hd" secid="6.2.16">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-hd">6.2.16</a></span>hd</h3>
+<section id="sec-hd" secid="6.2.20">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-hd">6.2.20</a></span>hd</h3>
 <p>Return the first item</p>
 <pre><code>hd [10 20 30]  | returns 10
 </code></pre>
 </section>
-<section id="sec-json" secid="6.2.17">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-json">6.2.17</a></span>json</h3>
+<section id="sec-json" secid="6.2.21">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-json">6.2.21</a></span>json</h3>
 <p>Parses a string as JSON</p>
 <pre><code>json "{\"a\": 1}"  | returns {a: 1}
 </code></pre>
 </section>
-<section id="sec-last" secid="6.2.18">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-last">6.2.18</a></span>last</h3>
+<section id="sec-last" secid="6.2.22">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-last">6.2.22</a></span>last</h3>
 <p>Returns the last element of a list</p>
 <pre><code>last [1 2 3]  | returns 3
 </code></pre>
 </section>
-<section id="sec-le" secid="6.2.19">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-le">6.2.19</a></span>le</h3>
+<section id="sec-le" secid="6.2.23">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-le">6.2.23</a></span>le</h3>
 <p>Returns true if the first value is less than or equal to the second</p>
 <pre><code>le 3 5  | returns true
 le 3 3  | returns true
 le 5 3  | returns false
 </code></pre>
 </section>
-<section id="sec-isempty" secid="6.2.20">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-isempty">6.2.20</a></span>isempty</h3>
+<section id="sec-isempty" secid="6.2.24">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-isempty">6.2.24</a></span>isempty</h3>
 <p>Return true if list is empty, otherwise return false</p>
 <pre><code>isempty []  | returns true
 </code></pre>
 </section>
-<section id="sec-length" secid="6.2.21">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-length">6.2.21</a></span>length</h3>
+<section id="sec-length" secid="6.2.25">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-length">6.2.25</a></span>length</h3>
 <p>Return the length of a list or string</p>
 <pre><code>length [1 2 3]    | returns 3
 length "hello"    | returns 5
 length []         | returns 0
 </code></pre>
 </section>
-<section id="sec-lt" secid="6.2.22">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-lt">6.2.22</a></span>lt</h3>
+<section id="sec-lt" secid="6.2.26">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-lt">6.2.26</a></span>lt</h3>
 <p>Returns true if the first value is less than the second</p>
 <pre><code>lt 3 5  | returns true
 lt 3 3  | returns false
 </code></pre>
 </section>
-<section id="sec-log" secid="6.2.23">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-log">6.2.23</a></span>log</h3>
+<section id="sec-log" secid="6.2.27">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-log">6.2.27</a></span>log</h3>
 <p>Log a value to the console and return the value unchanged</p>
 <pre><code>log "Hello"  | prints "Hello" to console and returns "Hello"
 log (add 1 2)  | prints 3 to console and returns 3
 </code></pre>
 </section>
-<section id="sec-map" secid="6.2.24">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-map">6.2.24</a></span>map</h3>
+<section id="sec-map" secid="6.2.28">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-map">6.2.28</a></span>map</h3>
 <p>Apply a function to each element</p>
 <pre><code>map (&lt;x: add x 1&gt;) [1 2 3]  | returns [2 3 4]
 </code></pre>
 </section>
-<section id="sec-max" secid="6.2.25">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-max">6.2.25</a></span>max</h3>
+<section id="sec-max" secid="6.2.29">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-max">6.2.29</a></span>max</h3>
 <p>Return the larger of two numbers</p>
 <pre><code>max 5 10  | returns 10
 </code></pre>
 </section>
-<section id="sec-min" secid="6.2.26">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-min">6.2.26</a></span>min</h3>
+<section id="sec-min" secid="6.2.30">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-min">6.2.30</a></span>min</h3>
 <p>Return the smaller of two numbers</p>
 <pre><code>min 5 10  | returns 5
 </code></pre>
 </section>
-<section id="sec-mod" secid="6.2.27">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-mod">6.2.27</a></span>mod</h3>
+<section id="sec-mod" secid="6.2.31">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-mod">6.2.31</a></span>mod</h3>
 <p>Compute the remainder</p>
 <pre><code>mod 10 3  | returns 1
 </code></pre>
 </section>
-<section id="sec-mul" secid="6.2.28">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-mul">6.2.28</a></span>mul</h3>
+<section id="sec-mul" secid="6.2.32">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-mul">6.2.32</a></span>mul</h3>
 <p>Multiply two numbers</p>
 <pre><code>mul 4 3  | returns 12
 </code></pre>
 </section>
-<section id="sec-ne" secid="6.2.29">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-ne">6.2.29</a></span>ne</h3>
+<section id="sec-ne" secid="6.2.33">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-ne">6.2.33</a></span>ne</h3>
 <p>Returns true if the two values are not equal</p>
 <pre><code>ne 1 2  | returns true
 ne 1 1  | returns false
 </code></pre>
 </section>
-<section id="sec-not" secid="6.2.30">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-not">6.2.30</a></span>not</h3>
+<section id="sec-not" secid="6.2.34">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-not">6.2.34</a></span>not</h3>
 <p>Logical NOT that inverts a boolean value</p>
 <pre><code>not true   | returns false
 not false  | returns true
 </code></pre>
 </section>
-<section id="sec-nth" secid="6.2.31">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-nth">6.2.31</a></span>nth</h3>
+<section id="sec-nth" secid="6.2.35">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-nth">6.2.35</a></span>nth</h3>
 <p>Get the nth item (0-based)</p>
 <pre><code>nth 1 [10 20 30]  | returns 20
 </code></pre>
 </section>
-<section id="sec-or" secid="6.2.32">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-or">6.2.32</a></span>or</h3>
+<section id="sec-or" secid="6.2.36">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-or">6.2.36</a></span>or</h3>
 <p>Logical OR operation</p>
 <pre><code>or false false  | returns false
 or false true   | returns true
@@ -790,54 +847,60 @@ or true false   | returns true
 or true true    | returns true
 </code></pre>
 </section>
-<section id="sec-print" secid="6.2.33">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-print">6.2.33</a></span>print</h3>
+<section id="sec-print" secid="6.2.37">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-print">6.2.37</a></span>print</h3>
 <p>Outputs a value to the form</p>
 <pre><code>print {x: 1, y: 2}  | outputs the record to the form
 </code></pre>
 </section>
-<section id="sec-pow" secid="6.2.34">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-pow">6.2.34</a></span>pow</h3>
+<section id="sec-pow" secid="6.2.38">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-pow">6.2.38</a></span>pow</h3>
 <p>Raise the first number to the power of the second</p>
 <pre><code>pow 2 3  | returns 8
 pow 5 2  | returns 25
 </code></pre>
 </section>
-<section id="sec-range" secid="6.2.35">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-range">6.2.35</a></span>range</h3>
+<section id="sec-range" secid="6.2.39">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-range">6.2.39</a></span>range</h3>
 <p>Produce a range list from start to end (exclusive) with step</p>
 <pre><code>range 1 10 2  | returns [1 3 5 7 9]
 </code></pre>
 </section>
-<section id="sec-reduce" secid="6.2.36">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-reduce">6.2.36</a></span>reduce</h3>
+<section id="sec-reduce" secid="6.2.40">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-reduce">6.2.40</a></span>reduce</h3>
 <p>Reduce a list to a single value, starting with an initial value</p>
 <pre><code>reduce (&lt;a b: add a b&gt;) 0 [1 2 3 4]  | returns 10
 </code></pre>
 </section>
-<section id="sec-set" secid="6.2.37">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-set">6.2.37</a></span>set</h3>
+<section id="sec-set" secid="6.2.41">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-set">6.2.41</a></span>set</h3>
 <p>Return a new record with an updated field</p>
 <pre><code>set "a" 2 {a: 1}  | returns {a: 2}
 </code></pre>
 </section>
-<section id="sec-sub" secid="6.2.38">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-sub">6.2.38</a></span>sub</h3>
+<section id="sec-sub" secid="6.2.42">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-sub">6.2.42</a></span>sub</h3>
 <p>Subtract the second number from the first</p>
 <pre><code>sub 5 2  | returns 3
 </code></pre>
 </section>
-<section id="sec-take" secid="6.2.39">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-take">6.2.39</a></span>take</h3>
+<section id="sec-take" secid="6.2.43">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-take">6.2.43</a></span>take</h3>
 <p>Returns the first n elements of a list</p>
 <pre><code>take 2 [1 2 3 4 5]  | returns [1 2]
 take 0 [1 2 3]       | returns []
 </code></pre>
 </section>
-<section id="sec-tl" secid="6.2.40">
-<h3><span class="spec-secid" title="link to this section"><a href="#sec-tl">6.2.40</a></span>tl</h3>
+<section id="sec-tl" secid="6.2.44">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-tl">6.2.44</a></span>tl</h3>
 <p>Return all but the first item</p>
 <pre><code>tl [10 20 30]  | returns [20 30]
+</code></pre>
+</section>
+<section id="sec-use" secid="6.2.45">
+<h3><span class="spec-secid" title="link to this section"><a href="#sec-use">6.2.45</a></span>use</h3>
+<p>Declares the language of the upstream task expected by <code>data</code>. Used only inside <code>data</code> (e.g. <code>data use "0166"</code>); the argument is a language id string. Evaluates to <code>{}</code> when no upstream is bound, so <code>data use "&lt;lang&gt;"</code> falls back to the empty record. Consumers (e.g. the console) read this annotation at write time to drive composition, fetching <code>L&lt;lang&gt;/schema.json</code> and inlining the schema on the <code>use</code> node.</p>
+<pre><code>data use "0166"  | declares L0166 upstream; returns the upstream record at runtime, or {} if none
 </code></pre>
 </section>
 </section>
@@ -933,32 +996,37 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_6.2.12"><a href="#sec-filter"><span class="spec-secid">6.2.12</span>filter</a></li>
 <li id="_sidebar_6.2.13"><a href="#sec-ge"><span class="spec-secid">6.2.13</span>ge</a></li>
 <li id="_sidebar_6.2.14"><a href="#sec-get"><span class="spec-secid">6.2.14</span>get</a></li>
-<li id="_sidebar_6.2.15"><a href="#sec-gt"><span class="spec-secid">6.2.15</span>gt</a></li>
-<li id="_sidebar_6.2.16"><a href="#sec-hd"><span class="spec-secid">6.2.16</span>hd</a></li>
-<li id="_sidebar_6.2.17"><a href="#sec-json"><span class="spec-secid">6.2.17</span>json</a></li>
-<li id="_sidebar_6.2.18"><a href="#sec-last"><span class="spec-secid">6.2.18</span>last</a></li>
-<li id="_sidebar_6.2.19"><a href="#sec-le"><span class="spec-secid">6.2.19</span>le</a></li>
-<li id="_sidebar_6.2.20"><a href="#sec-isempty"><span class="spec-secid">6.2.20</span>isempty</a></li>
-<li id="_sidebar_6.2.21"><a href="#sec-length"><span class="spec-secid">6.2.21</span>length</a></li>
-<li id="_sidebar_6.2.22"><a href="#sec-lt"><span class="spec-secid">6.2.22</span>lt</a></li>
-<li id="_sidebar_6.2.23"><a href="#sec-log"><span class="spec-secid">6.2.23</span>log</a></li>
-<li id="_sidebar_6.2.24"><a href="#sec-map"><span class="spec-secid">6.2.24</span>map</a></li>
-<li id="_sidebar_6.2.25"><a href="#sec-max"><span class="spec-secid">6.2.25</span>max</a></li>
-<li id="_sidebar_6.2.26"><a href="#sec-min"><span class="spec-secid">6.2.26</span>min</a></li>
-<li id="_sidebar_6.2.27"><a href="#sec-mod"><span class="spec-secid">6.2.27</span>mod</a></li>
-<li id="_sidebar_6.2.28"><a href="#sec-mul"><span class="spec-secid">6.2.28</span>mul</a></li>
-<li id="_sidebar_6.2.29"><a href="#sec-ne"><span class="spec-secid">6.2.29</span>ne</a></li>
-<li id="_sidebar_6.2.30"><a href="#sec-not"><span class="spec-secid">6.2.30</span>not</a></li>
-<li id="_sidebar_6.2.31"><a href="#sec-nth"><span class="spec-secid">6.2.31</span>nth</a></li>
-<li id="_sidebar_6.2.32"><a href="#sec-or"><span class="spec-secid">6.2.32</span>or</a></li>
-<li id="_sidebar_6.2.33"><a href="#sec-print"><span class="spec-secid">6.2.33</span>print</a></li>
-<li id="_sidebar_6.2.34"><a href="#sec-pow"><span class="spec-secid">6.2.34</span>pow</a></li>
-<li id="_sidebar_6.2.35"><a href="#sec-range"><span class="spec-secid">6.2.35</span>range</a></li>
-<li id="_sidebar_6.2.36"><a href="#sec-reduce"><span class="spec-secid">6.2.36</span>reduce</a></li>
-<li id="_sidebar_6.2.37"><a href="#sec-set"><span class="spec-secid">6.2.37</span>set</a></li>
-<li id="_sidebar_6.2.38"><a href="#sec-sub"><span class="spec-secid">6.2.38</span>sub</a></li>
-<li id="_sidebar_6.2.39"><a href="#sec-take"><span class="spec-secid">6.2.39</span>take</a></li>
-<li id="_sidebar_6.2.40"><a href="#sec-tl"><span class="spec-secid">6.2.40</span>tl</a></li>
+<li id="_sidebar_6.2.15"><a href="#sec-get-var"><span class="spec-secid">6.2.15</span>get-var</a></li>
+<li id="_sidebar_6.2.16"><a href="#sec-get-val-private"><span class="spec-secid">6.2.16</span>get-val-private</a></li>
+<li id="_sidebar_6.2.17"><a href="#sec-get-val-public"><span class="spec-secid">6.2.17</span>get-val-public</a></li>
+<li id="_sidebar_6.2.18"><a href="#sec-set-var"><span class="spec-secid">6.2.18</span>set-var</a></li>
+<li id="_sidebar_6.2.19"><a href="#sec-gt"><span class="spec-secid">6.2.19</span>gt</a></li>
+<li id="_sidebar_6.2.20"><a href="#sec-hd"><span class="spec-secid">6.2.20</span>hd</a></li>
+<li id="_sidebar_6.2.21"><a href="#sec-json"><span class="spec-secid">6.2.21</span>json</a></li>
+<li id="_sidebar_6.2.22"><a href="#sec-last"><span class="spec-secid">6.2.22</span>last</a></li>
+<li id="_sidebar_6.2.23"><a href="#sec-le"><span class="spec-secid">6.2.23</span>le</a></li>
+<li id="_sidebar_6.2.24"><a href="#sec-isempty"><span class="spec-secid">6.2.24</span>isempty</a></li>
+<li id="_sidebar_6.2.25"><a href="#sec-length"><span class="spec-secid">6.2.25</span>length</a></li>
+<li id="_sidebar_6.2.26"><a href="#sec-lt"><span class="spec-secid">6.2.26</span>lt</a></li>
+<li id="_sidebar_6.2.27"><a href="#sec-log"><span class="spec-secid">6.2.27</span>log</a></li>
+<li id="_sidebar_6.2.28"><a href="#sec-map"><span class="spec-secid">6.2.28</span>map</a></li>
+<li id="_sidebar_6.2.29"><a href="#sec-max"><span class="spec-secid">6.2.29</span>max</a></li>
+<li id="_sidebar_6.2.30"><a href="#sec-min"><span class="spec-secid">6.2.30</span>min</a></li>
+<li id="_sidebar_6.2.31"><a href="#sec-mod"><span class="spec-secid">6.2.31</span>mod</a></li>
+<li id="_sidebar_6.2.32"><a href="#sec-mul"><span class="spec-secid">6.2.32</span>mul</a></li>
+<li id="_sidebar_6.2.33"><a href="#sec-ne"><span class="spec-secid">6.2.33</span>ne</a></li>
+<li id="_sidebar_6.2.34"><a href="#sec-not"><span class="spec-secid">6.2.34</span>not</a></li>
+<li id="_sidebar_6.2.35"><a href="#sec-nth"><span class="spec-secid">6.2.35</span>nth</a></li>
+<li id="_sidebar_6.2.36"><a href="#sec-or"><span class="spec-secid">6.2.36</span>or</a></li>
+<li id="_sidebar_6.2.37"><a href="#sec-print"><span class="spec-secid">6.2.37</span>print</a></li>
+<li id="_sidebar_6.2.38"><a href="#sec-pow"><span class="spec-secid">6.2.38</span>pow</a></li>
+<li id="_sidebar_6.2.39"><a href="#sec-range"><span class="spec-secid">6.2.39</span>range</a></li>
+<li id="_sidebar_6.2.40"><a href="#sec-reduce"><span class="spec-secid">6.2.40</span>reduce</a></li>
+<li id="_sidebar_6.2.41"><a href="#sec-set"><span class="spec-secid">6.2.41</span>set</a></li>
+<li id="_sidebar_6.2.42"><a href="#sec-sub"><span class="spec-secid">6.2.42</span>sub</a></li>
+<li id="_sidebar_6.2.43"><a href="#sec-take"><span class="spec-secid">6.2.43</span>take</a></li>
+<li id="_sidebar_6.2.44"><a href="#sec-tl"><span class="spec-secid">6.2.44</span>tl</a></li>
+<li id="_sidebar_6.2.45"><a href="#sec-use"><span class="spec-secid">6.2.45</span>use</a></li>
 </ol>
 </li>
 </ol>
