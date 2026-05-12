@@ -480,6 +480,11 @@ export class Checker extends Visitor {
     const val = node;
     resume(err, val);
   }
+  USE(node, options, resume) {
+    const err = [];
+    const val = node;
+    resume(err, val);
+  }
   PAREN(node, options, resume) {
     const err = [];
     const val = node;
@@ -1226,6 +1231,9 @@ export class Transformer extends Visitor {
       const val = hasUpstream ? recordMerge(v0, upstream) : v0;
       resume(e0, val);
     });
+  }
+  USE(node, options, resume) {
+    resume([], createRecord());
   }
   PAREN(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {

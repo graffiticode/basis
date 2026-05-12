@@ -167,6 +167,14 @@ export const lexicon = {
     "type": "<record: record>",
     "description": "Returns the data from the upstream task, or the argument value if no input exists."
   },
+  "use": {
+    "tk": 1,
+    "name": "USE",
+    "cls": "function",
+    "arity": 1,
+    "type": "<string: record>",
+    "description": "Inside `data`, declares the upstream language whose output is expected (e.g. `data use \"0166\"`). The console resolves the language's schema at write time; at runtime falls back to {} when no upstream is bound."
+  },
   "json": {
     "tk": 1,
     "name": "JSON",

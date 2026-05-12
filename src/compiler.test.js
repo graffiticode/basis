@@ -291,5 +291,28 @@ describe("Existing functionality", () => {
       const result = await compile('data {x: 0}..', { x: 42 });
       expect(result).toEqual({ x: 42 });
     });
+
+    test('data use "0166" with no upstream returns {}', async () => {
+      const result = await compile('data use "0166"..');
+      expect(result).toEqual({});
+    });
+
+    test('data use "0166" with upstream returns upstream', async () => {
+      const result = await compile('data use "0166"..', { x: 1 });
+      expect(result).toEqual({ x: 1 });
+    });
+
+    test('parser produces DATA(USE(STR)) for data use "0166"', async () => {
+      const nodePool = await parser.parse(0, 'data use "0166"..', lexicon);
+      const dataNode = Object.values(nodePool).find(
+        n => typeof n === "object" && n && n.tag === "DATA"
+      );
+      expect(dataNode).toBeTruthy();
+      const useNode = nodePool[dataNode.elts[0]];
+      expect(useNode.tag).toBe("USE");
+      const strNode = nodePool[useNode.elts[0]];
+      expect(strNode.tag).toBe("STR");
+      expect(strNode.elts[0]).toBe("0166");
+    });
   });
 });
