@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
 //
-// Runtime validator for upstream data against a language's published
-// schema.json. Used by the DATA visitor when its argument came from `use`
-// (i.e. the rewriting walker has inlined the schema as JSON on the USE
-// node's STR child, the USE visitor parsed it back, and tagged the
-// resulting record with `_gcSchema`).
+// Schema fetching and runtime validation for the `data use "<lang>"` form.
 //
-// Compiled Ajv validators are cached on this module by schema $id (or a
-// content fingerprint as fallback). Schemas inlined by the walker are
-// stable per item, so the cache amortizes nicely across requests.
+// At compile time the basis USE visitor calls `getLanguageSchema(lang)` to
+// resolve the upstream's published `schema.json` over HTTP, and the DATA
+// visitor calls `validateAgainstSchema(value, schema)` to type-check the
+// chained upstream value before merging it into the head's result.
 
 import Ajv from "ajv";
 
@@ -40,4 +37,56 @@ export function validateAgainstSchema(value, schema) {
     from: -1,
     to: -1,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Schema fetching
+// ---------------------------------------------------------------------------
+
+const SCHEMA_FETCH_TTL_MS = 60 * 60 * 1000; // 1 hour
+const schemaFetchCache = new Map(); // lang -> { value, expires }
+
+// Allow tests (and future use cases) to swap the underlying fetcher.
+let _fetchImpl = (typeof fetch === "function") ? fetch : null;
+export function setSchemaFetcher(fn) {
+  _fetchImpl = fn;
+}
+
+function apiBaseUrl() {
+  return process.env.GRAFFITICODE_API_URL || "https://api.graffiticode.org";
+}
+
+export function clearSchemaCache() {
+  schemaFetchCache.clear();
+}
+
+// Fetches L<lang>/schema.json from the configured api server. Caches successful
+// fetches with TTL. Throws on non-2xx or invalid JSON — the caller (USE) maps
+// this into a compile error.
+export async function getLanguageSchema(lang) {
+  const cached = schemaFetchCache.get(lang);
+  if (cached && Date.now() < cached.expires) {
+    return cached.value;
+  }
+  if (!_fetchImpl) {
+    throw new Error("no fetch implementation available (node 18+ or setSchemaFetcher)");
+  }
+  const url = `${apiBaseUrl()}/L${lang}/schema.json`;
+  let res;
+  try {
+    res = await _fetchImpl(url);
+  } catch (err) {
+    throw new Error(`network error fetching ${url}: ${err.message}`);
+  }
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} from ${url}`);
+  }
+  let schema;
+  try {
+    schema = await res.json();
+  } catch (err) {
+    throw new Error(`invalid JSON at ${url}: ${err.message}`);
+  }
+  schemaFetchCache.set(lang, { value: schema, expires: Date.now() + SCHEMA_FETCH_TTL_MS });
+  return schema;
 }

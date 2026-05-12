@@ -2,7 +2,7 @@
 import {assert, message, messages, reserveCodeRange} from "./share.js";
 import Decimal from 'decimal.js';
 import crypto from 'crypto';
-import { validateAgainstSchema } from "./schema-validator.js";
+import { validateAgainstSchema, getLanguageSchema } from "./schema-validator.js";
 
 function decrypt(ciphertext) {
   const key = process.env.GRAFFITICODE_SECRET_KEY;
@@ -1251,21 +1251,32 @@ export class Transformer extends Visitor {
     });
   }
   USE(node, options, resume) {
-    // At write time the console walker rewrites the STR child to hold the
-    // JSON-stringified language schema. Parse it back and tag the empty
-    // record we return so DATA can validate the upstream against it. If
-    // the STR still holds a bare lang id (pre-walker code path), fall
-    // through silently — no schema, no validation.
+    // Visit the STR child to get the upstream language id, then fetch that
+    // language's schema.json over HTTP and tag the returned record so DATA
+    // can validate the chained upstream value against it. The fetch is
+    // cached in-process. Fetch failures surface as compile errors.
     this.visit(node.elts[0], options, (e0, v0) => {
-      const rec = createRecord();
-      if (typeof v0 === "string" && v0.length > 0 && v0.charCodeAt(0) === 0x7b /* '{' */) {
-        try {
-          rec[SCHEMA_SYM] = JSON.parse(v0);
-        } catch (_) {
-          // Looked like JSON but wasn't parseable — leave rec untagged.
-        }
+      const lang = (typeof v0 === "string") ? v0 : "";
+      if (!/^\d{3,5}$/.test(lang)) {
+        resume([].concat(e0, [{
+          message: `use: argument must be a language id, got "${lang}"`,
+          from: -1, to: -1,
+        }]), null);
+        return;
       }
-      resume(e0, rec);
+      getLanguageSchema(lang).then(
+        (schema) => {
+          const rec = createRecord();
+          rec[SCHEMA_SYM] = schema;
+          resume(e0, rec);
+        },
+        (err) => {
+          resume([].concat(e0, [{
+            message: `use: failed to load L${lang}/schema.json: ${err.message}`,
+            from: -1, to: -1,
+          }]), null);
+        }
+      );
     });
   }
   PAREN(node, options, resume) {

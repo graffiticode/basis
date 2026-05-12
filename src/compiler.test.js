@@ -1,5 +1,6 @@
 import { parser } from "@graffiticode/parser";
 import { Compiler, Checker, Transformer, Renderer, lexicon } from "../index.js";
+import { setSchemaFetcher, clearSchemaCache } from "./schema-validator.js";
 
 function compile(src, data = {}) {
   return new Promise(async (resolve, reject) => {
@@ -292,16 +293,6 @@ describe("Existing functionality", () => {
       expect(result).toEqual({ x: 42 });
     });
 
-    test('data use "0166" with no upstream returns {}', async () => {
-      const result = await compile('data use "0166"..');
-      expect(result).toEqual({});
-    });
-
-    test('data use "0166" with upstream returns upstream', async () => {
-      const result = await compile('data use "0166"..', { x: 1 });
-      expect(result).toEqual({ x: 1 });
-    });
-
     test('parser produces DATA(USE(STR)) for data use "0166"', async () => {
       const nodePool = await parser.parse(0, 'data use "0166"..', lexicon);
       const dataNode = Object.values(nodePool).find(
@@ -315,74 +306,82 @@ describe("Existing functionality", () => {
       expect(strNode.elts[0]).toBe("0166");
     });
 
-    // Simulates what the console walker does: replaces the lang id in
-    // USE's STR child with a JSON-stringified schema.
-    async function compileWithSchema(src, schema, data) {
-      const nodePool = await parser.parse(0, src, lexicon);
-      const useNode = Object.values(nodePool).find(
-        n => typeof n === "object" && n && n.tag === "USE"
-      );
-      const strNid = useNode.elts[0];
-      nodePool[strNid].elts[0] = JSON.stringify(schema);
-      return new Promise((resolve, reject) => {
-        const compiler = new Compiler({
-          langID: "0",
-          version: "v0.0.0",
-          Checker,
-          Transformer,
-          Renderer,
-        });
-        compiler.compile(nodePool, data || {}, {}, (err, val) => {
-          if (err && err.length > 0) reject(err);
-          else resolve(val);
-        });
+    describe('use with mocked schema fetcher', () => {
+      // The basis USE visitor fetches L<lang>/schema.json at compile time.
+      // Tests inject a mock fetcher and clear the in-process cache.
+      function mockFetcher(responses) {
+        return async (url) => {
+          if (url in responses) {
+            const body = responses[url];
+            if (body === null) {
+              return { ok: false, status: 404, json: async () => null };
+            }
+            return { ok: true, json: async () => body };
+          }
+          return { ok: false, status: 404, json: async () => null };
+        };
+      }
+
+      afterEach(() => {
+        setSchemaFetcher(typeof fetch === "function" ? fetch : null);
+        clearSchemaCache();
       });
-    }
 
-    test('data use "<schema>" with conforming upstream passes validation', async () => {
-      const schema = {
-        $id: "test-conform",
-        type: "object",
-        properties: { x: { type: "number" } },
-        required: ["x"],
-      };
-      const result = await compileWithSchema('data use "0166"..', schema, { x: 42 });
-      expect(result).toEqual({ x: 42 });
-    });
+      test('successful fetch + conforming upstream passes', async () => {
+        const schema = {
+          $id: "test-conform",
+          type: "object",
+          properties: { x: { type: "number" } },
+          required: ["x"],
+        };
+        setSchemaFetcher(mockFetcher({
+          "https://api.graffiticode.org/L0166/schema.json": schema,
+        }));
+        const result = await compile('data use "0166"..', { x: 42 });
+        expect(result).toEqual({ x: 42 });
+      });
 
-    test('data use "<schema>" with non-conforming upstream fails with schema error', async () => {
-      const schema = {
-        $id: "test-fail",
-        type: "object",
-        properties: { x: { type: "number" } },
-        required: ["x"],
-      };
-      await expect(compileWithSchema('data use "0166"..', schema, { y: "wrong" }))
-        .rejects.toEqual(expect.arrayContaining([
-          expect.objectContaining({
-            message: expect.stringContaining("upstream data does not match"),
-          }),
-        ]));
-    });
+      test('successful fetch + non-conforming upstream fails', async () => {
+        const schema = {
+          $id: "test-fail",
+          type: "object",
+          properties: { x: { type: "number" } },
+          required: ["x"],
+        };
+        setSchemaFetcher(mockFetcher({
+          "https://api.graffiticode.org/L0166/schema.json": schema,
+        }));
+        await expect(compile('data use "0166"..', { y: "wrong" }))
+          .rejects.toEqual(expect.arrayContaining([
+            expect.objectContaining({
+              message: expect.stringContaining("upstream data does not match"),
+            }),
+          ]));
+      });
 
-    test('data use "<schema>" with no upstream skips validation, returns {}', async () => {
-      // Schema would reject {} (required field), but no upstream means
-      // validation is skipped and the {} fallback wins.
-      const schema = {
-        $id: "test-skip",
-        type: "object",
-        properties: { x: { type: "number" } },
-        required: ["x"],
-      };
-      const result = await compileWithSchema('data use "0166"..', schema);
-      expect(result).toEqual({});
-    });
+      test('successful fetch + no upstream returns {} (skip validation)', async () => {
+        const schema = {
+          $id: "test-skip",
+          type: "object",
+          properties: { x: { type: "number" } },
+          required: ["x"],
+        };
+        setSchemaFetcher(mockFetcher({
+          "https://api.graffiticode.org/L0166/schema.json": schema,
+        }));
+        const result = await compile('data use "0166"..');
+        expect(result).toEqual({});
+      });
 
-    test('data use "<lang-id>" (pre-walker form) with no upstream returns {} gracefully', async () => {
-      // Bare lang id never went through the walker. USE shouldn't crash;
-      // schema is simply unattached and DATA falls through.
-      const result = await compile('data use "0166"..');
-      expect(result).toEqual({});
+      test('failed schema fetch surfaces as compile error', async () => {
+        setSchemaFetcher(mockFetcher({}));  // returns 404 for everything
+        await expect(compile('data use "0166"..'))
+          .rejects.toEqual(expect.arrayContaining([
+            expect.objectContaining({
+              message: expect.stringContaining("failed to load L0166/schema.json"),
+            }),
+          ]));
+      });
     });
   });
 });
