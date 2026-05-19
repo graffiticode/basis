@@ -97,6 +97,16 @@ A program in one dialect can read the compiled output of another dialect as its 
 
 `data` and `use` are both arity-1, so the two forms are mutually exclusive. Choose `data use "<lang>"` when you want the host to discover the upstream automatically and validate its shape; choose `data {…}` when you want a default value baked in and the chain wired manually.
 
+## Top-level result shape
+
+A dialect's compiled output is consumed in two places: by the host renderer for that dialect, and — when chained — by another dialect via `data use "<lang>"`. To make composition predictable, every dialect should return a **record** at the top level, never a bare list, number, or string.
+
+When a dialect's natural result is a list, wrap it in a record under a domain-named key that describes what the list contains: `{ items: [...] }` for a generic collection, `{ rows: [...] }` for tabular data, `{ questions: [...] }` for an assessment, and so on. Declare that key in the dialect's `schema.json` so `data use` consumers can validate against it.
+
+Avoid generic envelopes like `{ value: [...] }` — they carry no semantic meaning and collide poorly with the existing `data` builtin, which already means "upstream input." The key should describe the content, not the wrapping.
+
+basis does not enforce this; it is a dialect-authoring convention. The basis compiler passes the top-level result through as-is.
+
 ## Errors
 
 Errors are propagated as a list of objects with `message`, `from`, and `to` fields (the `from`/`to` point at character offsets in the source when the error has a known location, otherwise `-1`). A program that produces any error fails to compile; its rendered output is replaced with the error list.
