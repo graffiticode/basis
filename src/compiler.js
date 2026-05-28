@@ -163,15 +163,17 @@ function recordMerge(rec1, rec2) {
 
 // Upstream compiled output (passed as options.data for a chained task) may use
 // the standard { data, errors } envelope or be a bare value from a task
-// compiled before the envelope existed. Return the data model from either: a
-// plain object carrying a `data` and/or `errors` field is an envelope (use its
-// `data`); anything else is the data model itself. Basis records have
+// compiled before the envelope existed. Return the data model from either:
+// detection requires `errors` to be an array — the envelope always carries one
+// (success → `[]`, failure → non-empty), and using `data` as a discriminator
+// would misidentify legacy raw values that happen to carry a top-level `data`
+// key (e.g. l0158's `{ type: "questions", data: {...} }`). Basis records have
 // `_type`/`_entries` (not `data`/`errors`) so they are never misdetected.
 function unwrapEnvelopeData(value) {
   if (
     value !== null && typeof value === "object" &&
     !Array.isArray(value) && !isRecord(value) &&
-    ("data" in value || "errors" in value)
+    Array.isArray(value.errors)
   ) {
     return value.data;
   }
