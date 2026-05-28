@@ -161,6 +161,23 @@ function recordMerge(rec1, rec2) {
   return newRec;
 }
 
+// Upstream compiled output (passed as options.data for a chained task) may use
+// the standard { data, errors } envelope or be a bare value from a task
+// compiled before the envelope existed. Return the data model from either: a
+// plain object carrying a `data` and/or `errors` field is an envelope (use its
+// `data`); anything else is the data model itself. Basis records have
+// `_type`/`_entries` (not `data`/`errors`) so they are never misdetected.
+function unwrapEnvelopeData(value) {
+  if (
+    value !== null && typeof value === "object" &&
+    !Array.isArray(value) && !isRecord(value) &&
+    ("data" in value || "errors" in value)
+  ) {
+    return value.data;
+  }
+  return value;
+}
+
 class Visitor {
   constructor(code) {
     this.nodePool = code;
@@ -1229,7 +1246,10 @@ export class Transformer extends Visitor {
   }
   DATA(node, options, resume) {
     this.visit(node.elts[0], options, (e0, v0) => {
-      const upstream = options.data;
+      // Upstream may arrive as a { data, errors } envelope (chained task on a
+      // migrated language) or as a bare value (task compiled before the
+      // envelope). Read the data model from either shape.
+      const upstream = unwrapEnvelopeData(options.data);
       const hasUpstream = upstream != null
         && (isRecord(upstream) ? upstream._entries.size > 0
             : typeof upstream === "object" ? Object.keys(upstream).length > 0
